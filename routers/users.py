@@ -1,6 +1,6 @@
 '''Routes for handling user authentication'''
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from models.User import UserInDB
 from models.Token import Token
 from typing import Annotated
@@ -8,14 +8,10 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pymongo.collection import Collection
 from lib.database import users_collection
-from lib.http_responses import HTTP_401, HTTP_403, HTTP_409
+from lib.http_exceptions import HTTP_401, HTTP_409
 from datetime import timedelta, datetime
-from jose import ExpiredSignatureError, jwt
-import os
-
-SECRET_KEY = os.getenv('SECRET_KEY')
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+from jose import jwt
+from lib.globals import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -69,11 +65,3 @@ def login(
         HTTP_401('Username or password not found')
     access_token: str = create_access_token(user.username)
     return Token(access_token=access_token, token_type='bearer')
-
-@router.get('/test')
-def test(token: Annotated[str, Depends(oauth2_scheme)]):
-    try:
-        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except ExpiredSignatureError:
-        HTTP_403('Token expired')
-    return 'test'

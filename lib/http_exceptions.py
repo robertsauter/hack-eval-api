@@ -9,12 +9,6 @@ def HTTP_401(message: str) -> None:
         headers={ 'WWW-Authenticate': 'Bearer' }
     )
 
-def HTTP_403(message: str) -> None:
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=message
-    )
-
 def HTTP_409(message: str) -> None:
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
