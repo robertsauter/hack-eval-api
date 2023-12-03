@@ -5,7 +5,7 @@ from models.User import UserInDB
 from models.Token import Token
 from typing import Annotated
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from pymongo.collection import Collection
 from lib.database import users_collection
 from lib.http_exceptions import HTTP_401, HTTP_409
@@ -14,8 +14,6 @@ from jose import jwt
 from lib.globals import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
 router = APIRouter()
 
