@@ -1,5 +1,3 @@
-from models.Hackathon import LeaderMeasure, Age, Gender, Minority, Education
-
 ANSWERS_MAP = {
     'motivation': {
         'Not at all': 1,
@@ -16,19 +14,19 @@ ANSWERS_MAP = {
         'Completely': 5
     },
     'team_leader': {
-        'Yes, I was the team leader.': LeaderMeasure.YES.value,
-        'Yes, someone else was the team leader.': LeaderMeasure.YES_OTHER.value,
-        'No, there was no clear leader in the team.': LeaderMeasure.NO.value
+        'Yes, I was the team leader.': 'yes',
+        'Yes, someone else was the team leader.': 'yes-other',
+        'No, there was no clear leader in the team.': 'no'
     },
     'team_manager': {
-        'Yes, I was the project manager.': LeaderMeasure.YES.value,
-        'Yes, someone else was the project manager.': LeaderMeasure.YES_OTHER.value,
-        'No, there was no clear project manager in the team.': LeaderMeasure.NO.value
+        'Yes, I was the project manager.': 'yes',
+        'Yes, someone else was the project manager.': 'yes-other',
+        'No, there was no clear project manager in the team.': 'no'
     },
     'social_leader': {
-        'Yes, I was the social-emotional leader.': LeaderMeasure.YES.value,
-        'Yes, someone else was the social-emotional leader.': LeaderMeasure.YES_OTHER.value,
-        'No, there was no clear social-emotional in the team.': LeaderMeasure.NO.value
+        'Yes, I was the social-emotional leader.': 'yes',
+        'Yes, someone else was the social-emotional leader.': 'yes-other',
+        'No, there was no clear social-emotional in the team.': 'no'
     },
     'team_familiarity': {
         'Strongly disagree': 1,
@@ -157,35 +155,35 @@ ANSWERS_MAP = {
         'Very experienced': 5
     },
     'age': {
-        '18 to 24': Age.EIGHTEEN.value,
-        '25 to 34': Age.TWENTYFIVE.value,
-        '35 to 44': Age.THIRTYFIVE.value,
-        '45 to 54': Age.FOURTYFIVE.value,
-        '55 to 64': Age.FIFTYFIVE.value,
-        '65 to 74': Age.SIXTYFIVE.value,
-        '75 or older': Age.SEVENTYFIVE.value,
-        'Prefer not to say': Age.PREFER_NOT_TO_SAY.value
+        '18 to 24': '18',
+        '25 to 34': '25',
+        '35 to 44': '35',
+        '45 to 54': '45',
+        '55 to 64': '55',
+        '65 to 74': '65',
+        '75 or older': '75',
+        'Prefer not to say': 'prefer-not-to-say'
     },
     'gender': {
-        'Female': Gender.FEMALE.value,
-        'Male': Gender.MALE.value,
-        'Non-binary': Gender.NON_BINARY.value,
-        'Prefer not to say': Gender.PREFER_NOT_TO_SAY.value
+        'Female': 'female',
+        'Male': 'male',
+        'Non-binary': 'non-binary',
+        'Prefer not to say': 'prefer-not-to-say'
     },
     'education': {
-        'High school diploma or GED': Education.HIGH_SCHOOL.value,
-        'Some college': Education.COLLEGE.value,
-        "Associate and/or bachelor's degree": Education.ASSOCIATE.value,
-        "Bachelor's degree": Education.BACHELOR.value,
-        'Professional degree': Education.PROFESSIONAL.value,
-        "Master's degree": Education.MASTER.value,
-        'Doctorate': Education.DOCTOR.value,
-        'Prefer not to say': Education.PREFER_NOT_TO_SAY.value
+        'High school diploma or GED': 'high-school',
+        'Some college': 'college',
+        "Associate and/or bachelor's degree": 'associate',
+        "Bachelor's degree": 'bachelor',
+        'Professional degree': 'professional',
+        "Master's degree": 'master',
+        'Doctorate': 'doctor',
+        'Prefer not to say': 'prefer-not-to-say'
     },
     'minority': {
-        'Yes': Minority.YES.value,
-        'No': Minority.NO.value,
-        'Prefer not to say': Minority.PREFER_NOT_TO_SAY.value
+        'Yes': 'yes',
+        'No': 'no',
+        'Prefer not to say': 'prefer-not-to-say'
     }
 }
 

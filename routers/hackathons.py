@@ -1,6 +1,6 @@
 '''Routes for handling hackathon objects'''
 
-from fastapi import APIRouter, UploadFile, Form
+from fastapi import APIRouter, UploadFile, Form, Depends
 from models.RawHackathon import RawHackathon, RawAnswer
 from fastapi.security import OAuth2PasswordBearer
 from models.Hackathon import Hackathon, Measures
@@ -11,6 +11,9 @@ from lib.http_exceptions import HTTP_415
 import pandas as pd
 from typing import Annotated
 from models.HackathonInformation import Venue, Type
+from typing import Annotated
+from lib.database import hackathons_collection
+from pymongo.collection import Collection
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
@@ -60,6 +63,7 @@ def map_hackathon_results_google(raw_hackathon: RawHackathon) -> Measures:
     return results
 
 def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
+    '''Map a raw hackathon from a csv file to a hackathon, that can be saved in the database'''
     results = Measures()
     raw_results = pd.read_csv(csv_file.file)
     question_group_title = ''
@@ -108,7 +112,7 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
     return results
 
 @router.post('/google')
-def upload_hackathon_google(raw_hackathon: RawHackathon) -> Hackathon:
+def upload_hackathon_google(raw_hackathon: RawHackathon, hackathons: Annotated[Collection, Depends(hackathons_collection)]) -> Hackathon:
     '''Process and save a hackathon object from google forms in the database'''
     hackathon = Hackathon(
         title=raw_hackathon.title,
@@ -117,6 +121,7 @@ def upload_hackathon_google(raw_hackathon: RawHackathon) -> Hackathon:
         type=raw_hackathon.type,
         results=map_hackathon_results_google(raw_hackathon)
     )
+    hackathons.insert_one(hackathon.model_dump())
     return hackathon
 
 @router.post('/csv')
@@ -125,7 +130,8 @@ def upload_hackathon_csv(
     venue: Annotated[Venue, Form()],
     participants: Annotated[int, Form()],
     type: Annotated[Type, Form()],
-    csv_file: UploadFile
+    csv_file: UploadFile,
+    hackathons: Annotated[Collection, Depends(hackathons_collection)]
     ) -> Hackathon:
     '''Process and save a hackathon object from a csv file in the database'''
     if csv_file.content_type == 'text/csv' and csv_file.filename.endswith('.csv'):
@@ -136,6 +142,7 @@ def upload_hackathon_csv(
             type=type,
             results=map_hackathon_results_csv(csv_file)
         )
+        hackathons.insert_one(hackathon.model_dump())
         return hackathon
     else:
         HTTP_415('Please provide a csv file.')

@@ -1,37 +1,16 @@
 from models.HackathonInformation import HackathonInformation
-from enum import Enum
 from pydantic import BaseModel
+from typing import Literal
 
-class Minority(Enum):
-    YES = 'yes'
-    NO = 'no'
-    PREFER_NOT_TO_SAY = 'prefer-not-to-say'
+Minority = Literal['yes', 'no', 'prefer-not-to-say']
 
-class Education(Enum):
-    HIGH_SCHOOL = 'high-school'
-    COLLEGE = 'college'
-    ASSOCIATE = 'associate'
-    BACHELOR = 'bachelor'
-    PROFESSIONAL = 'professional'
-    MASTER = 'master'
-    DOCTOR = 'doctor'
-    PREFER_NOT_TO_SAY = 'prefer-not-to-say'
+Education = Literal['high-school', 'college', 'associate', 'bachelor', 'professional', 'master', 'doctor', 'prefer-not-to-say']
 
-class Gender(Enum):
-    FEMALE = 'female'
-    MALE = 'male'
-    NON_BINARY = 'non-binary'
-    PREFER_NOT_TO_SAY = 'prefer-not-to-say'
+Gender = Literal['female', 'male', 'non-binary', 'prefer-not-to-say']
 
-class Age(Enum):
-    EIGHTEEN = '18'
-    TWENTYFIVE = '25'
-    THIRTYFIVE = '35'
-    FOURTYFIVE = '45'
-    FIFTYFIVE = '55'
-    SIXTYFIVE = '65'
-    SEVENTYFIVE = '75'
-    PREFER_NOT_TO_SAY = 'prefer-not-to-say'
+Age = Literal['18', '25', '35', '45', '55', '65', '75', 'prefer-not-to-say']
+
+LeaderMeasure = Literal['yes', 'yes-other', 'no']
 
 class ProgrammingMeasure(BaseModel):
     java: list[int] | None = None
@@ -57,11 +36,6 @@ class MentoringExperience(BaseModel):
     part_of_team: list[int] | None = None
     interest: list[int] | None = None
     reach: list[int] | None = None
-
-class LeaderMeasure(Enum):
-    YES = 'yes'
-    YES_OTHER = 'yes-other'
-    NO = 'no'
 
 class Motivation(BaseModel):
     having_fun: list[int] | None = None

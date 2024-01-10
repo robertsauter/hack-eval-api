@@ -15,3 +15,6 @@ def database() -> Database:
 
 def users_collection(database: Annotated[Database, Depends(database)]) -> Collection:
     return database['users']
+
+def hackathons_collection(database: Annotated[Database, Depends(database)]) -> Collection:
+    return database['hackathons']
