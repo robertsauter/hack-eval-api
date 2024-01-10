@@ -1,6 +1,6 @@
 '''Routes for handling hackathon objects'''
 
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, UploadFile, Form
 from models.RawHackathon import RawHackathon, RawAnswer
 from fastapi.security import OAuth2PasswordBearer
 from models.Hackathon import Hackathon, Measures
@@ -9,6 +9,8 @@ from data.survey_questions import ANSWERS_MAP, QUESTION_TITLES_MAP, SPECIAL_QUES
 from lib.helpers import getattr_with_initial_value
 from lib.http_exceptions import HTTP_415
 import pandas as pd
+from typing import Annotated
+from models.HackathonInformation import Venue, Type
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
@@ -57,24 +59,18 @@ def map_hackathon_results_google(raw_hackathon: RawHackathon) -> Measures:
                     getattr_with_initial_value(results, title, []).append(round(statistics.fmean(answer_values)))
     return results
 
-def map_hackathon_results_csv(csv_file: UploadFile) -> Hackathon:
-    hackathon = Hackathon(
-        title='',
-        venue='in-person',
-        participants=10,
-        type='prototype',
-        results=Measures()
-    )
-    results = pd.read_csv(csv_file.file)
+def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
+    results = Measures()
+    raw_results = pd.read_csv(csv_file.file)
     question_group_title = ''
     question_group_values = []
     question_group_index = 0
-    for raw_title_hashable in results:
+    for raw_title_hashable in raw_results:
         raw_title = str(raw_title_hashable)
         #Handle group questions with single score
         if question_group_title != '' and question_group_title not in raw_title:
             for value_group in question_group_values:
-                getattr_with_initial_value(hackathon.results, QUESTION_TITLES_MAP[question_group_title], []).append(round(statistics.fmean(value_group)))
+                getattr_with_initial_value(results, QUESTION_TITLES_MAP[question_group_title], []).append(round(statistics.fmean(value_group)))
             question_group_title = ''
             question_group_values = []
         sections = raw_title.split(' [', 1)
@@ -88,11 +84,11 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Hackathon:
                     raw_child_title = sections[1].strip(']')
                     child_title = QUESTION_TITLES_MAP[raw_child_title] if raw_child_title in QUESTION_TITLES_MAP else None
                     if child_title != None:
-                        for value in results.get(raw_title_hashable):
-                            set_special_question(hackathon.results, parent_title, child_title, value)
+                        for value in raw_results.get(raw_title_hashable):
+                            set_special_question(results, parent_title, child_title, value)
                 #Prepare group question with single score
                 else:
-                    values = results.get(raw_title_hashable)
+                    values = raw_results.get(raw_title_hashable)
                     for value in values:
                         if len(question_group_values) < values.size:
                             question_group_values.append([])
@@ -105,11 +101,11 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Hackathon:
         else:
             if raw_title in QUESTION_TITLES_MAP:
                 title = QUESTION_TITLES_MAP[raw_title]
-                attribute = getattr_with_initial_value(hackathon.results, title, [])
-                for value in results.get(raw_title_hashable):
+                attribute = getattr_with_initial_value(results, title, [])
+                for value in raw_results.get(raw_title_hashable):
                     final_value = ANSWERS_MAP[title][value] if title in ANSWERS_MAP else int(value)
                     attribute.append(final_value)
-    return hackathon
+    return results
 
 @router.post('/google')
 def upload_hackathon_google(raw_hackathon: RawHackathon) -> Hackathon:
@@ -124,9 +120,22 @@ def upload_hackathon_google(raw_hackathon: RawHackathon) -> Hackathon:
     return hackathon
 
 @router.post('/csv')
-def upload_hackathon_csv(csv_file: UploadFile) -> Hackathon:
+def upload_hackathon_csv(
+    title: Annotated[str, Form()],
+    venue: Annotated[Venue, Form()],
+    participants: Annotated[int, Form()],
+    type: Annotated[Type, Form()],
+    csv_file: UploadFile
+    ) -> Hackathon:
     '''Process and save a hackathon object from a csv file in the database'''
     if csv_file.content_type == 'text/csv' and csv_file.filename.endswith('.csv'):
-        return map_hackathon_results_csv(csv_file)
+        hackathon = Hackathon(
+            title=title,
+            venue=venue,
+            participants=participants,
+            type=type,
+            results=map_hackathon_results_csv(csv_file)
+        )
+        return hackathon
     else:
         HTTP_415('Please provide a csv file.')
