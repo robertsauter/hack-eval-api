@@ -14,6 +14,7 @@ from models.HackathonInformation import Venue, Type
 from typing import Annotated
 from lib.database import hackathons_collection
 from pymongo.collection import Collection
+import math
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
@@ -26,6 +27,19 @@ def set_special_question(results: Measures, parent_title: str, child_title: str,
     parent_attribute = getattr(results, parent_title)
     child_attribute = getattr_with_initial_value(parent_attribute, child_title, [])
     child_attribute.append(ANSWERS_MAP[parent_title][value])
+
+def get_real_value_csv(title: str, value: any):
+    if type(value) is str:
+        if title in ANSWERS_MAP and value in ANSWERS_MAP[title]:
+            return ANSWERS_MAP[title][value]
+        return 0
+    elif type(value) is float:
+        if math.isnan(value):
+            return 0
+        return round(value)
+    elif type(value) is int:
+        return value
+    return 0
 
 def map_hackathon_results_google(raw_hackathon: RawHackathon) -> Measures:
     '''Map a raw hackathon from google forms to a hackathon, that can be saved in the database'''
@@ -96,8 +110,7 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
                     for value in values:
                         if len(question_group_values) < values.size:
                             question_group_values.append([])
-                        final_value = ANSWERS_MAP[parent_title][value] if type(value) is str else ANSWERS_MAP[parent_title][str(value)] if type(value) is int else 0
-                        question_group_values[question_group_index].append(final_value)
+                        question_group_values[question_group_index].append(get_real_value_csv(parent_title, value))
                         question_group_index += 1
                     question_group_title = raw_parent_title
                     question_group_index = 0
@@ -107,8 +120,7 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
                 title = QUESTION_TITLES_MAP[raw_title]
                 attribute = getattr_with_initial_value(results, title, [])
                 for value in raw_results.get(raw_title_hashable):
-                    final_value = ANSWERS_MAP[title][value] if title in ANSWERS_MAP else int(value)
-                    attribute.append(final_value)
+                    attribute.append(get_real_value_csv(title, value))
     return results
 
 @router.post('/google')
@@ -130,17 +142,17 @@ def upload_hackathon_csv(
     venue: Annotated[Venue, Form()],
     participants: Annotated[int, Form()],
     type: Annotated[Type, Form()],
-    csv_file: UploadFile,
+    file: UploadFile,
     hackathons: Annotated[Collection, Depends(hackathons_collection)]
     ) -> Hackathon:
     '''Process and save a hackathon object from a csv file in the database'''
-    if csv_file.content_type == 'text/csv' and csv_file.filename.endswith('.csv'):
+    if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
         hackathon = Hackathon(
             title=title,
             venue=venue,
             participants=participants,
             type=type,
-            results=map_hackathon_results_csv(csv_file)
+            results=map_hackathon_results_csv(file)
         )
         hackathons.insert_one(hackathon.model_dump())
         return hackathon
