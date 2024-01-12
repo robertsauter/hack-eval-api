@@ -17,10 +17,10 @@ password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 router = APIRouter()
 
-def create_access_token(username: str) -> str:
+def create_access_token(user_id: str) -> str:
     '''Creates an access token, that can be sent to verify, that a user is logged in'''
     access_token_expires = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    data = { 'sub': username, 'exp': access_token_expires }
+    data = { 'sub': user_id, 'exp': access_token_expires }
     return jwt.encode(data, SECRET_KEY, ALGORITHM)
 
 def authenticate_user(
@@ -34,7 +34,12 @@ def authenticate_user(
         return None
     if not password_context.verify(password, user['hashed_password']):
         return None
-    return UserInDB(**user)
+    user_in_db = UserInDB(
+        id=str(user['_id']),
+        username=user['username'],
+        hashed_password=user['hashed_password']
+    )
+    return user_in_db
 
 @router.post('')
 def register(
@@ -58,8 +63,8 @@ def login(
         users: Annotated[Collection, Depends(users_collection)]
     ) -> Token:
     '''Login an existing user'''
-    user: UserInDB | None = authenticate_user(form_data.username, form_data.password, users)
+    user = authenticate_user(form_data.username, form_data.password, users)
     if user is None:
         HTTP_401('Username or password not found')
-    access_token: str = create_access_token(user.username)
+    access_token: str = create_access_token(user.id)
     return Token(access_token=access_token, token_type='bearer')

@@ -4,17 +4,20 @@ from fastapi import APIRouter, UploadFile, Form, Depends
 from models.RawHackathon import RawHackathon, RawAnswer
 from fastapi.security import OAuth2PasswordBearer
 from models.Hackathon import Hackathon, Measures
+from models.HackathonInformation import HackathonInformation
 import statistics
 from data.survey_questions import ANSWERS_MAP, QUESTION_TITLES_MAP, SPECIAL_QUESTION_TITLES_SET
 from lib.helpers import getattr_with_initial_value
 from lib.http_exceptions import HTTP_415
 import pandas as pd
 from typing import Annotated
-from models.HackathonInformation import Venue, Type
+from models.HackathonInformation import Venue, Type, Incentives
 from typing import Annotated
 from lib.database import hackathons_collection
 from pymongo.collection import Collection
 import math
+from jose import jwt
+from lib.globals import SECRET_KEY, ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
@@ -24,11 +27,13 @@ def get_raw_answer_google(answers: dict[str, RawAnswer], item_id: str) -> RawAns
     return answers[item_id] if item_id in answers else None
 
 def set_special_question(results: Measures, parent_title: str, child_title: str, value: str):
+    '''Set a question group with subquestions in a Measures object'''
     parent_attribute = getattr(results, parent_title)
     child_attribute = getattr_with_initial_value(parent_attribute, child_title, [])
     child_attribute.append(ANSWERS_MAP[parent_title][value])
 
 def get_real_value_csv(title: str, value: any):
+    '''Determine which type a value has (missing values return 0)'''
     if type(value) is str:
         if title in ANSWERS_MAP and value in ANSWERS_MAP[title]:
             return ANSWERS_MAP[title][value]
@@ -124,14 +129,21 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
     return results
 
 @router.post('/google')
-def upload_hackathon_google(raw_hackathon: RawHackathon, hackathons: Annotated[Collection, Depends(hackathons_collection)]) -> Hackathon:
+def upload_hackathon_google(
+    raw_hackathon: RawHackathon,
+    hackathons: Annotated[Collection, Depends(hackathons_collection)],
+    token: Annotated[str, Depends(oauth2_scheme)]
+    ) -> Hackathon:
     '''Process and save a hackathon object from google forms in the database'''
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     hackathon = Hackathon(
         title=raw_hackathon.title,
+        incentives=raw_hackathon.incentives,
         venue=raw_hackathon.venue,
         participants=raw_hackathon.participants,
         type=raw_hackathon.type,
-        results=map_hackathon_results_google(raw_hackathon)
+        results=map_hackathon_results_google(raw_hackathon),
+        created_by=user_id
     )
     hackathons.insert_one(hackathon.model_dump())
     return hackathon
@@ -139,22 +151,46 @@ def upload_hackathon_google(raw_hackathon: RawHackathon, hackathons: Annotated[C
 @router.post('/csv')
 def upload_hackathon_csv(
     title: Annotated[str, Form()],
+    incentives: Annotated[Incentives, Form()],
     venue: Annotated[Venue, Form()],
     participants: Annotated[int, Form()],
     type: Annotated[Type, Form()],
     file: UploadFile,
-    hackathons: Annotated[Collection, Depends(hackathons_collection)]
+    hackathons: Annotated[Collection, Depends(hackathons_collection)],
+    token: Annotated[str, Depends(oauth2_scheme)]
     ) -> Hackathon:
     '''Process and save a hackathon object from a csv file in the database'''
     if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
+        user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
         hackathon = Hackathon(
             title=title,
+            incentives=incentives,
             venue=venue,
             participants=participants,
             type=type,
-            results=map_hackathon_results_csv(file)
+            results=map_hackathon_results_csv(file),
+            created_by=user_id
         )
         hackathons.insert_one(hackathon.model_dump())
         return hackathon
     else:
         HTTP_415('Please provide a csv file.')
+
+@router.get('')
+def get_hackathons_by_user_id(
+    hackathons: Annotated[Collection, Depends(hackathons_collection)],
+    token: Annotated[str, Depends(oauth2_scheme)]
+    ) -> list[HackathonInformation]:
+    '''Return all hackathons of the logged in user'''
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
+    found_hackathons = []
+    for hackathon in hackathons.find({'created_by': user_id}):
+        found_hackathons.append(HackathonInformation(
+            id=str(hackathon['_id']),
+            title=hackathon['title'],
+            incentives=hackathon['incentives'],
+            venue=hackathon['venue'],
+            participants=hackathon['participants'],
+            type=hackathon['type']
+        ))
+    return found_hackathons

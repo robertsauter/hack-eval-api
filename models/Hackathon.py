@@ -83,3 +83,4 @@ class Measures(BaseModel):
 
 class Hackathon(HackathonInformation):
     results: Measures
+    created_by: str
