@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from routers import users
+from routers import users, hackathons
 from fastapi.middleware.cors import CORSMiddleware
 from jose import ExpiredSignatureError, jwt
 from lib.globals import SECRET_KEY, ALGORITHM
@@ -17,8 +17,9 @@ app.add_middleware(
 
 @app.middleware('http')
 async def check_if_token_expired(request: Request, call_next):
+    '''This is run before every request. If the request contains a token, check if it expired'''
     auth = request.headers.get('Authorization')
-    if auth:
+    if auth and auth.startswith('Bearer'):
         token = auth.split(' ', maxsplit=1)[1]        
         try:
             jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -28,3 +29,4 @@ async def check_if_token_expired(request: Request, call_next):
     return response
 
 app.include_router(users.router, prefix='/users')
+app.include_router(hackathons.router, prefix='/hackathons')
