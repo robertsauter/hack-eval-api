@@ -32,7 +32,10 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
     '''Create a single dataset, that combines the hackathons, that were found from the filter combination'''
     filter_values = {}
     for key in filter_combination:
-        filter_values[key] = { '$in': filter_combination[key] }
+        if type(filter_values) is list:
+            filter_values[key] = { '$elemMatch': { "$in": filter_combination[key] } }
+        else:
+            filter_values[key] = { '$in': filter_combination[key] }
     cursor = hackathons_collection.find(filter_values)
     final_hackathon = None
     for hackathon in cursor:
@@ -74,13 +77,15 @@ def get_analyses(
     hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
     hackathons: str = '',
-    filters: str = '{}'
+    filters: str = '[]'
 ):
     '''Create all analyses given a list of filters'''
     hackathon_ids_list = hackathons.split(',')
     hackathon = build_single_hackathon(hackathon_ids_list, hackathons_collection)
     encoded_filters = json.loads(filters)
     filtered_hackathons = []
+    if len(encoded_filters) == 0:
+        encoded_filters.append({})
     for filter_combination in encoded_filters:
         filtered_hackathons.append(build_filtered_hackathon(filter_combination, hackathons_collection))
     return ''
