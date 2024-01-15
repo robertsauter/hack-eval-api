@@ -10,7 +10,7 @@ from lib.helpers import getattr_with_initial_value
 from lib.http_exceptions import HTTP_415
 import pandas as pd
 from typing import Annotated
-from models.HackathonInformation import Venue, Incentives
+from models.HackathonInformation import Venue, Incentives, Size
 from typing import Annotated
 from lib.database import hackathons_collection
 from pymongo.collection import Collection
@@ -141,7 +141,7 @@ def upload_hackathon_google(
         title=raw_hackathon.title,
         incentives=raw_hackathon.incentives,
         venue=raw_hackathon.venue,
-        participants=raw_hackathon.participants,
+        size=raw_hackathon.size,
         types=raw_hackathon.types,
         results=map_hackathon_results_google(raw_hackathon),
         created_by=user_id
@@ -154,7 +154,7 @@ def upload_hackathon_csv(
     title: Annotated[str, Form()],
     incentives: Annotated[Incentives, Form()],
     venue: Annotated[Venue, Form()],
-    participants: Annotated[int, Form()],
+    size: Annotated[Size, Form()],
     types: Annotated[str, Form()],
     file: UploadFile,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
@@ -168,7 +168,7 @@ def upload_hackathon_csv(
             title=title,
             incentives=incentives,
             venue=venue,
-            participants=participants,
+            size=size,
             types=type_list,
             results=map_hackathon_results_csv(file),
             created_by=user_id
@@ -192,7 +192,7 @@ def get_hackathons_by_user_id(
             title=hackathon['title'],
             incentives=hackathon['incentives'],
             venue=hackathon['venue'],
-            participants=hackathon['participants'],
+            size=hackathon['size'],
             types=hackathon['types']
         ))
     return found_hackathons

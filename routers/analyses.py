@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 import json
-from models.Hackathon import Hackathon
 from typing import Annotated
 from pymongo.collection import Collection
 from lib.database import hackathons_collection
@@ -32,7 +31,7 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
     '''Create a single dataset, that combines the hackathons, that were found from the filter combination'''
     filter_values = {}
     for key in filter_combination:
-        if type(filter_values) is list:
+        if key == 'types':
             filter_values[key] = { '$elemMatch': { "$in": filter_combination[key] } }
         else:
             filter_values[key] = { '$in': filter_combination[key] }

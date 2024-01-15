@@ -7,11 +7,13 @@ Venue = Literal['in-person', 'virtual', 'hybrid']
 
 Type = Literal['prototype', 'conceptual', 'analysis', 'education', 'community', 'ideation']
 
+Size = Literal['small', 'medium', 'large']
+
 class HackathonInformation(BaseModel):
     title: str
     incentives: Incentives
     venue: Venue
-    participants: int
+    size: Size
     types: list[Type]
 
 class HackathonInformationWithId(HackathonInformation):
