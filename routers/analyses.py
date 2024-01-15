@@ -6,6 +6,8 @@ from lib.database import hackathons_collection
 from bson.objectid import ObjectId
 from typing import Annotated
 from lib.globals import OAUTH2_SCHEME
+from models.Filter import Filter
+from lib.http_exceptions import HTTP_422
 
 router = APIRouter()
 
@@ -30,6 +32,10 @@ def combine_hackathon_values(first_hackathon: dict, second_hackathon: dict):
 def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection):
     '''Create a single dataset, that combines the hackathons, that were found from the filter combination'''
     filter_values = {}
+    try:
+        Filter.model_validate(filter_combination)
+    except:
+        HTTP_422('Filter combination is invalid')
     for key in filter_combination:
         if key == 'types':
             filter_values[key] = { '$elemMatch': { "$in": filter_combination[key] } }
