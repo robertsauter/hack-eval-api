@@ -12,7 +12,7 @@ class HackathonInformation(BaseModel):
     incentives: Incentives
     venue: Venue
     participants: int
-    type: Type
+    types: list[Type]
 
 class HackathonInformationWithId(HackathonInformation):
     id: str

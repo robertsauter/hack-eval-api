@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from routers import users, hackathons
+from routers import users, hackathons, analyses
 from fastapi.middleware.cors import CORSMiddleware
 from jose import ExpiredSignatureError, jwt
 from lib.globals import SECRET_KEY, ALGORITHM
@@ -30,3 +30,4 @@ async def check_if_token_expired(request: Request, call_next):
 
 app.include_router(users.router, prefix='/users')
 app.include_router(hackathons.router, prefix='/hackathons')
+app.include_router(analyses.router, prefix='/analyses')

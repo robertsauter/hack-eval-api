@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, UploadFile, Form, Depends
 from models.RawHackathon import RawHackathon, RawAnswer
-from fastapi.security import OAuth2PasswordBearer
 from models.Hackathon import Hackathon, Measures
 from models.HackathonInformation import HackathonInformationWithId
 import statistics
@@ -11,16 +10,14 @@ from lib.helpers import getattr_with_initial_value
 from lib.http_exceptions import HTTP_415
 import pandas as pd
 from typing import Annotated
-from models.HackathonInformation import Venue, Type, Incentives
+from models.HackathonInformation import Venue, Incentives
 from typing import Annotated
 from lib.database import hackathons_collection
 from pymongo.collection import Collection
 import math
 from jose import jwt
-from lib.globals import SECRET_KEY, ALGORITHM
+from lib.globals import SECRET_KEY, ALGORITHM, OAUTH2_SCHEME
 from bson.objectid import ObjectId
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/login')
 
 router = APIRouter()
 
@@ -42,6 +39,8 @@ def get_real_value(title: str, value: any):
         return 0
     elif type(value) is float:
         if math.isnan(value):
+            if title in ANSWERS_MAP:
+                return next(iter(ANSWERS_MAP[title].values()))
             return 0
         return round(value)
     elif type(value) is int:
@@ -104,15 +103,15 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
             raw_parent_title = sections[0]
             parent_title = QUESTION_TITLES_MAP[raw_parent_title] if raw_parent_title in QUESTION_TITLES_MAP else None
             if parent_title != None:
+                raw_child_title = sections[1].strip(']')
                 #Handle group questions with subquestions
                 if raw_parent_title in SPECIAL_QUESTION_TITLES_SET:
-                    raw_child_title = sections[1].strip(']')
                     child_title = QUESTION_TITLES_MAP[raw_child_title] if raw_child_title in QUESTION_TITLES_MAP else None
                     if child_title != None:
                         for value in raw_results.get(raw_title_hashable):
                             set_special_question(results, parent_title, child_title, value)
                 #Prepare group question with single score
-                else:
+                elif raw_child_title != 'Other':
                     values = raw_results.get(raw_title_hashable)
                     for value in values:
                         if len(question_group_values) < values.size:
@@ -134,7 +133,7 @@ def map_hackathon_results_csv(csv_file: UploadFile) -> Measures:
 def upload_hackathon_google(
     raw_hackathon: RawHackathon,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(oauth2_scheme)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
     ) -> Hackathon:
     '''Process and save a hackathon object from google forms in the database'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
@@ -143,7 +142,7 @@ def upload_hackathon_google(
         incentives=raw_hackathon.incentives,
         venue=raw_hackathon.venue,
         participants=raw_hackathon.participants,
-        type=raw_hackathon.type,
+        types=raw_hackathon.types,
         results=map_hackathon_results_google(raw_hackathon),
         created_by=user_id
     )
@@ -156,20 +155,21 @@ def upload_hackathon_csv(
     incentives: Annotated[Incentives, Form()],
     venue: Annotated[Venue, Form()],
     participants: Annotated[int, Form()],
-    type: Annotated[Type, Form()],
+    types: Annotated[str, Form()],
     file: UploadFile,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(oauth2_scheme)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
     ) -> Hackathon:
     '''Process and save a hackathon object from a csv file in the database'''
     if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
         user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
+        type_list = types.split(',')
         hackathon = Hackathon(
             title=title,
             incentives=incentives,
             venue=venue,
             participants=participants,
-            type=type,
+            types=type_list,
             results=map_hackathon_results_csv(file),
             created_by=user_id
         )
@@ -181,7 +181,7 @@ def upload_hackathon_csv(
 @router.get('')
 def get_hackathons_by_user_id(
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(oauth2_scheme)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
     ) -> list[HackathonInformationWithId]:
     '''Find all hackathons of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
@@ -193,7 +193,7 @@ def get_hackathons_by_user_id(
             incentives=hackathon['incentives'],
             venue=hackathon['venue'],
             participants=hackathon['participants'],
-            type=hackathon['type']
+            types=hackathon['types']
         ))
     return found_hackathons
 
@@ -201,7 +201,7 @@ def get_hackathons_by_user_id(
 def delete_hackathon(
     hackathon_id: str,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(oauth2_scheme)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
     ) -> str:
     '''Delete a hackathon with the given id'''
     hackathons.delete_one({'_id': ObjectId(hackathon_id)});
