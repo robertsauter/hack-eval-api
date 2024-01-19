@@ -8,6 +8,7 @@ from typing import Annotated
 from lib.globals import OAUTH2_SCHEME
 from models.Filter import Filter
 from lib.http_exceptions import HTTP_422
+from models.Hackathon import Hackathon
 
 router = APIRouter()
 
@@ -37,10 +38,11 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
     except:
         HTTP_422('Filter combination is invalid')
     for key in filter_combination:
-        if key == 'types':
-            filter_values[key] = { '$elemMatch': { "$in": filter_combination[key] } }
-        else:
-            filter_values[key] = { '$in': filter_combination[key] }
+        if len(filter_combination[key]) != 0:
+            if key == 'types':
+                filter_values[key] = { '$elemMatch': { "$in": filter_combination[key] } }
+            else:
+                filter_values[key] = { '$in': filter_combination[key] }
     cursor = hackathons_collection.find(filter_values)
     final_hackathon = None
     for hackathon in cursor:
@@ -92,5 +94,10 @@ def get_analyses(
     if len(encoded_filters) == 0:
         encoded_filters.append({})
     for filter_combination in encoded_filters:
-        filtered_hackathons.append(build_filtered_hackathon(filter_combination, hackathons_collection))
-    return ''
+        filtered_hackathon = build_filtered_hackathon(filter_combination, hackathons_collection)
+        if filtered_hackathon != None:
+            filtered_hackathons.append(filtered_hackathon)
+    return {
+        'selected': Hackathon.model_validate(hackathon),
+        'comparisons': [Hackathon.model_validate(filtered) for filtered in filtered_hackathons]
+    }
