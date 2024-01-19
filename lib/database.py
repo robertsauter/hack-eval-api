@@ -18,3 +18,6 @@ def users_collection(database: Annotated[Database, Depends(database)]) -> Collec
 
 def hackathons_collection(database: Annotated[Database, Depends(database)]) -> Collection:
     return database['hackathons']
+
+def filters_collection(database: Annotated[Database, Depends(database)]) -> Collection:
+    return database['filters']

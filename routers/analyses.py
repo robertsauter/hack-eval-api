@@ -38,7 +38,7 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
     except:
         HTTP_422('Filter combination is invalid')
     for key in filter_combination:
-        if len(filter_combination[key]) != 0:
+        if key != 'name' and len(filter_combination[key]) != 0:
             if key == 'types':
                 filter_values[key] = { '$elemMatch': { "$in": filter_combination[key] } }
             else:
