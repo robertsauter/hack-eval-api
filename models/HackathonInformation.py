@@ -15,6 +15,7 @@ class HackathonInformation(BaseModel):
     venue: Venue
     size: Size
     types: list[Type]
+    link: str | None = None
 
 class HackathonInformationWithId(HackathonInformation):
     id: str

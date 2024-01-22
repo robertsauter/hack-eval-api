@@ -143,6 +143,7 @@ def upload_hackathon_google(
         venue=raw_hackathon.venue,
         size=raw_hackathon.size,
         types=raw_hackathon.types,
+        link=raw_hackathon.link,
         results=map_hackathon_results_google(raw_hackathon),
         created_by=user_id
     )
@@ -158,7 +159,8 @@ def upload_hackathon_csv(
     types: Annotated[str, Form()],
     file: UploadFile,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(OAUTH2_SCHEME)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)],
+    link: Annotated[str | None, Form()] = None,
     ) -> Hackathon:
     '''Process and save a hackathon object from a csv file in the database'''
     if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
@@ -170,6 +172,7 @@ def upload_hackathon_csv(
             venue=venue,
             size=size,
             types=type_list,
+            link=link,
             results=map_hackathon_results_csv(file),
             created_by=user_id
         )
@@ -193,7 +196,8 @@ def get_hackathons_by_user_id(
             incentives=hackathon['incentives'],
             venue=hackathon['venue'],
             size=hackathon['size'],
-            types=hackathon['types']
+            types=hackathon['types'],
+            link=hackathon['link']
         ))
     return found_hackathons
 
