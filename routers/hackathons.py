@@ -34,8 +34,10 @@ def set_special_question(results: Measures, parent_title: str, child_title: str,
 def get_real_value(title: str, value: any):
     '''Determine which type a value has (missing values return 0)'''
     if type(value) is str:
-        if title in ANSWERS_MAP and value in ANSWERS_MAP[title]:
-            return ANSWERS_MAP[title][value]
+        if title in ANSWERS_MAP:
+            if value in ANSWERS_MAP[title]:
+                return ANSWERS_MAP[title][value]
+            return next(iter(ANSWERS_MAP[title].values()))
         return 0
     elif type(value) is float:
         if math.isnan(value):
