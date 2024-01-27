@@ -22,12 +22,14 @@ import copy
 router = APIRouter()
 
 def set_value_csv(question: SurveyMeasure, raw_results: DataFrame):
+    '''Set the value for a simple question from a CSV file'''
     if question.title in raw_results:
         for value in raw_results[question.title]:
             real_value = get_real_value(question, value)
             question.values.append(real_value)
 
 def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame):
+    '''Set the values for a group question from a CSV file'''
     for sub_question in question.sub_questions:
         title = f'{question.title} [{sub_question.title}]'
         if title in raw_results:
@@ -36,6 +38,7 @@ def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame
                 sub_question.values.append(real_value)
 
 def set_value_score_question_csv(question: SurveyMeasure, raw_results: DataFrame):
+    '''Set the values for a score question from a CSV file'''
     titles = []
     for sub_question in question.sub_questions:
         title = f'{question.title} [{sub_question}]'
@@ -51,6 +54,7 @@ def set_value_score_question_csv(question: SurveyMeasure, raw_results: DataFrame
             question.values.append(round(statistics.fmean(values)))
 
 def map_hackathon_results_csv(empty_hackathon: Hackathon, csv_file: UploadFile):
+    '''Map a hackathon from a CSV file to a hackathon object'''
     raw_results = pd.read_csv(csv_file.file)
     for question in empty_hackathon.results:
         match question.question_type:
@@ -62,6 +66,7 @@ def map_hackathon_results_csv(empty_hackathon: Hackathon, csv_file: UploadFile):
                 set_value_score_question_csv(question, raw_results)
 
 def get_real_value(question: SurveyMeasure, value: str | int):
+    '''Check which type of answer is expected and map, if possible'''
     match question.answer_type:
         case 'int':
             try:
@@ -80,12 +85,14 @@ def get_real_value(question: SurveyMeasure, value: str | int):
             return 0
 
 def set_value_google(question: SurveyMeasure, answers: dict[str, RawAnswer], item_id: str):
+    '''Set the value for simple questions from Google Forms data'''
     if item_id in answers:
         value = answers[item_id].textAnswers.answers[0].value
         real_value = get_real_value(question, value)
         question.values.append(real_value)
 
 def set_value_score_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict):
+    '''Set the values for a score question from Google Forms data'''
     all_values = []
     for sub_question in question.sub_questions:
         if sub_question in sub_items:
@@ -98,6 +105,7 @@ def set_value_score_question_google(question: SurveyMeasure, answers: dict[str, 
         question.values.append(round(statistics.fmean(all_values)))
 
 def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict):
+    '''Set the values for a group question from Google Forms data'''
     for sub_question in question.sub_questions:
         if sub_question.title in sub_items:
             item_id = sub_items[sub_question.title]
@@ -107,6 +115,7 @@ def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, 
                 sub_question.values.append(real_value)
 
 def find_question_google(question: SurveyMeasure, items: list[SurveyItem]):
+    '''Get a single question from Google Forms survey data'''
     for item in items:
         if item.title != None and item.title == question.title:
             match question.question_type:
@@ -126,6 +135,7 @@ def find_question_google(question: SurveyMeasure, items: list[SurveyItem]):
                         return None
 
 def map_hackathon_results_google(empty_hackathon: Hackathon, raw_hackathon: RawHackathon):
+    '''Map a hackathon from Google forms to a hackathon object'''
     questions_in_hackathon = {}
     for question in empty_hackathon.results:
         found_question = find_question_google(question, raw_hackathon.survey.items)
@@ -154,6 +164,7 @@ def upload_hackathon_csv(
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
     link: Annotated[str | None, Form()] = None,
 ):
+    '''Save a hackathon in the database from a CSV file'''
     if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
         user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
         type_list = types.split(',')
@@ -179,6 +190,7 @@ def upload_hackathon_google(
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
 ):
+    '''Save a hackathon from Google Forms in the database'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     hackathon = Hackathon(
         title=raw_hackathon.title,

@@ -35,9 +35,13 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
             final_hackathon = hackathon
         else:
             combine_hackathon_values(final_hackathon.results, hackathon.results, False)
+    if final_hackathon != None:
+        name = filter_combination['name'] if 'name' in filter_combination else 'All hackathons'
+        final_hackathon.title = name
     return final_hackathon
 
 def extend_values(first: list[int | str], second: list[int | str], strict: bool):
+    '''Extend an array with a second one. If strict flag is set, remove all values if one of the arrays is empty'''
     if strict:
         if len(first) != 0 and len(second) != 0:
             first.extend(second)
@@ -116,7 +120,7 @@ def create_analysis(hackathon: Hackathon):
         analysis.results.append(measure)
     return analysis
 
-@router.get('/new')
+@router.get('')
 def get_analyses(
     hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
@@ -126,16 +130,12 @@ def get_analyses(
     '''Create all analyses given a list of filters'''
     hackathon_ids_list = hackathons.split(',')
     hackathon = build_single_hackathon(hackathon_ids_list, hackathons_collection)
-    selected_analysis = create_analysis(hackathon)
+    analyses = [create_analysis(hackathon)]
     decoded_filters = json.loads(filters)
-    filtered_analyses = []
     if len(decoded_filters) == 0:
         decoded_filters.append({})
     for filter_combination in decoded_filters:
         filtered_hackathon = build_filtered_hackathon(filter_combination, hackathons_collection)
         if filtered_hackathon != None:
-            filtered_analyses.append(create_analysis(filtered_hackathon))
-    return {
-        'selected': selected_analysis,
-        'comparisons': filtered_analyses
-    }
+            analyses.append(create_analysis(filtered_hackathon))
+    return analyses
