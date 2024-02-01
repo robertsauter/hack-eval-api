@@ -107,7 +107,8 @@ def create_analysis(hackathon: Hackathon):
         measure = AnalysisMeasure(
             title=question.title,
             question_type=question.question_type,
-            answer_type=question.answer_type
+            answer_type=question.answer_type,
+            answers=question.answers
         )
         if question.question_type == 'group_question':
             measure.sub_questions = []

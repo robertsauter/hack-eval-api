@@ -18,6 +18,7 @@ class AnalysisMeasure(BaseModel):
     answer_type: Literal['string_to_int', 'int', 'string']
     sub_questions: list[str | AnalysisSubQuestion] | None = None
     statistical_values: StatisticalValues | None = None
+    answers: dict[str, int] | list[str] | None = None
 
 class Analysis(HackathonInformation):
     results: list[AnalysisMeasure] = []
