@@ -139,4 +139,13 @@ def get_analyses(
         filtered_hackathon = build_filtered_hackathon(filter_combination, hackathons_collection)
         if filtered_hackathon != None:
             analyses.append(create_analysis(filtered_hackathon))
+        else:
+            #Append analysis with empty results
+            analyses.append(Analysis(
+                title=filter_combination['name'],
+                incentives='collaboration',
+                venue='hybrid',
+                size='small',
+                types=['analysis']
+            ))
     return analyses
