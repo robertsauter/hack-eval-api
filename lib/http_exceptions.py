@@ -20,3 +20,9 @@ def HTTP_415(message: str) -> None:
         status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         detail=message
     )
+
+def HTTP_422(message: str) -> None:
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail=message
+    )
