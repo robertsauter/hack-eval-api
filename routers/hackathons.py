@@ -4,7 +4,6 @@ from fastapi import APIRouter, UploadFile, Form, Depends
 from models.RawHackathon import RawHackathon, RawAnswer
 from models.HackathonInformation import HackathonInformationWithId
 from models.Hackathon import Hackathon, SurveyMeasure
-import statistics
 from data.survey_questions import QUESTIONS
 from lib.http_exceptions import HTTP_415
 import pandas as pd
@@ -37,9 +36,8 @@ def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame
                 real_value = get_real_value(question, value)
                 sub_question.values.append(real_value)
 
-def map_hackathon_results_csv(empty_hackathon: Hackathon, csv_file: UploadFile):
+def map_hackathon_results_csv(empty_hackathon: Hackathon, raw_results: DataFrame):
     '''Map a hackathon from a CSV file to a hackathon object'''
-    raw_results = pd.read_csv(csv_file.file)
     for question in empty_hackathon.results:
         match question.question_type:
             case 'single_question' | 'category_question':
@@ -145,7 +143,8 @@ def upload_hackathon_csv(
             results=copy.deepcopy(QUESTIONS),
             created_by=user_id
         )
-        map_hackathon_results_csv(hackathon, file)
+        raw_results = pd.read_csv(file.file)
+        map_hackathon_results_csv(hackathon, raw_results)
         hackathons.insert_one(hackathon.model_dump())
         return hackathon
     else:

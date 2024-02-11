@@ -58,7 +58,15 @@ def combine_hackathon_values(first_hackathon: list[SurveyMeasure], second_hackat
     '''Add values of the second to the first hackathon. Remove all measures, that are not contained in both'''
     for i in range(len(first_hackathon)):
         if first_hackathon[i].question_type == 'group_question' or first_hackathon[i].question_type == 'score_question':
+            #Don't return score questions where subquestions don't have the same amount of values
+            if first_hackathon[i].question_type == 'score_question':
+                length = len(first_hackathon[i].sub_questions[0].values)
+                for j in range(len(first_hackathon[i].sub_questions)):
+                    if len(second_hackathon[i].sub_questions[j].values) != length:
+                        return
             for j in range(len(first_hackathon[i].sub_questions)):
+                if first_hackathon[i].sub_questions[j].title == 'I have socialized with some of my team members (outside of this hackathon) before.' and len(first_hackathon[i].sub_questions[j].values) == 0:
+                    ''
                 extend_values(first_hackathon[i].sub_questions[j].values, second_hackathon[i].sub_questions[j].values, strict)
         else:
             extend_values(first_hackathon[i].values, second_hackathon[i].values, strict)
@@ -177,7 +185,7 @@ def get_analyses(
             #Append analysis with empty results
             analyses.append(Analysis(
                 title=filter_combination['name'],
-                incentives='collaboration',
+                incentives='cooperative',
                 venue='hybrid',
                 size='small',
                 types=['analysis']
