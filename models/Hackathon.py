@@ -11,7 +11,7 @@ class SurveyMeasure(BaseModel):
     question_type: Literal['single_question', 'group_question', 'score_question', 'category_question']
     answer_type: Literal['string_to_int', 'int', 'string']
     values: list[int | str] | None = None
-    sub_questions: list[str | SubQuestion] | None = None
+    sub_questions: list[SubQuestion] | None = None
     answers: dict[str, int] | list[str] | None = None
 
 class Hackathon(HackathonInformation):

@@ -1,3 +1,5 @@
+'''Routes for handling filter presets'''
+
 from fastapi import APIRouter, Depends
 from typing import Annotated
 from lib.globals import OAUTH2_SCHEME, SECRET_KEY, ALGORITHM

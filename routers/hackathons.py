@@ -37,22 +37,6 @@ def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame
                 real_value = get_real_value(question, value)
                 sub_question.values.append(real_value)
 
-def set_value_score_question_csv(question: SurveyMeasure, raw_results: DataFrame):
-    '''Set the values for a score question from a CSV file'''
-    titles = []
-    for sub_question in question.sub_questions:
-        title = f'{question.title} [{sub_question}]'
-        if title in raw_results:
-            titles.append(title)
-    if len(titles) > 0:
-        values = []
-        for i in range(raw_results.shape[0]):
-            for title in titles:
-                value = raw_results[title][i]
-                real_value = get_real_value(question, value)
-                values.append(real_value)
-            question.values.append(round(statistics.fmean(values)))
-
 def map_hackathon_results_csv(empty_hackathon: Hackathon, csv_file: UploadFile):
     '''Map a hackathon from a CSV file to a hackathon object'''
     raw_results = pd.read_csv(csv_file.file)
@@ -60,10 +44,8 @@ def map_hackathon_results_csv(empty_hackathon: Hackathon, csv_file: UploadFile):
         match question.question_type:
             case 'single_question' | 'category_question':
                 set_value_csv(question, raw_results)
-            case 'group_question':
+            case 'group_question' | 'score_question':
                 set_value_group_question_csv(question, raw_results)
-            case 'score_question':
-                set_value_score_question_csv(question, raw_results)
 
 def get_real_value(question: SurveyMeasure, value: str | int):
     '''Check which type of answer is expected and map, if possible'''
@@ -90,19 +72,6 @@ def set_value_google(question: SurveyMeasure, answers: dict[str, RawAnswer], ite
         value = answers[item_id].textAnswers.answers[0].value
         real_value = get_real_value(question, value)
         question.values.append(real_value)
-
-def set_value_score_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict):
-    '''Set the values for a score question from Google Forms data'''
-    all_values = []
-    for sub_question in question.sub_questions:
-        if sub_question in sub_items:
-            item_id = sub_items[sub_question]
-            if item_id in answers:
-                value = answers[item_id].textAnswers.answers[0].value
-                real_value = get_real_value(question, value)
-                all_values.append(real_value)
-    if len(all_values) > 0:
-        question.values.append(round(statistics.fmean(all_values)))
 
 def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict):
     '''Set the values for a group question from Google Forms data'''
@@ -147,9 +116,7 @@ def map_hackathon_results_google(empty_hackathon: Hackathon, raw_hackathon: RawH
                 match question.question_type:
                     case 'single_question' | 'category_question':
                         set_value_google(question, response.answers, questions_in_hackathon[question.title])
-                    case 'score_question':
-                        set_value_score_question_google(question, response.answers, questions_in_hackathon[question.title])
-                    case 'group_question':
+                    case 'group_question' | 'score_question':
                         set_value_group_question_google(question, response.answers, questions_in_hackathon[question.title])
 
 @router.post('/csv')

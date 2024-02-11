@@ -7,6 +7,7 @@ class StatisticalValues(BaseModel):
     average: float | None = None
     deviation: float | None = None
     distribution: dict[str, int]
+    cronbach_alpha: float | None = None
 
 class AnalysisSubQuestion(BaseModel):
     title: str
