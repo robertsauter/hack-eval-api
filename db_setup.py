@@ -7,7 +7,7 @@ import copy
 
 CONNECTION_STRING = 'mongodb://localhost:27017'
 DB_NAME = 'hack-eval'
-FOLDER_PATH = 'C:/Users/rober/Documents/Studium/Master/Masterarbeit/Data'
+FOLDER_PATH = ''
 
 client = MongoClient(CONNECTION_STRING)
 print('Connected to MongoDB')

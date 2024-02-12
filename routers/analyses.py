@@ -15,6 +15,7 @@ import statistics
 from models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, AnalysisSubQuestion
 import pandas as pd
 import pingouin as pg
+import math
 
 router = APIRouter()
 
@@ -57,17 +58,19 @@ def extend_values(first: list[int | str], second: list[int | str], strict: bool)
 def combine_hackathon_values(first_hackathon: list[SurveyMeasure], second_hackathon: list[SurveyMeasure], strict: bool):
     '''Add values of the second to the first hackathon. Remove all measures, that are not contained in both'''
     for i in range(len(first_hackathon)):
-        if first_hackathon[i].question_type == 'group_question' or first_hackathon[i].question_type == 'score_question':
-            #Don't return score questions where subquestions don't have the same amount of values
-            if first_hackathon[i].question_type == 'score_question':
-                length = len(first_hackathon[i].sub_questions[0].values)
-                for j in range(len(first_hackathon[i].sub_questions)):
-                    if len(second_hackathon[i].sub_questions[j].values) != length:
-                        return
+        if first_hackathon[i].question_type == 'group_question':
             for j in range(len(first_hackathon[i].sub_questions)):
-                if first_hackathon[i].sub_questions[j].title == 'I have socialized with some of my team members (outside of this hackathon) before.' and len(first_hackathon[i].sub_questions[j].values) == 0:
-                    ''
                 extend_values(first_hackathon[i].sub_questions[j].values, second_hackathon[i].sub_questions[j].values, strict)
+        elif first_hackathon[i].question_type == 'score_question':
+            #Don't return score questions where subquestions don't have the same amount of values
+            length = len(second_hackathon[i].sub_questions[0].values)
+            is_uneven = False
+            for j in range(len(second_hackathon[i].sub_questions)):
+                if len(second_hackathon[i].sub_questions[j].values) != length:
+                    is_uneven = True
+            if not is_uneven:
+                for j in range(len(first_hackathon[i].sub_questions)):
+                    extend_values(first_hackathon[i].sub_questions[j].values, second_hackathon[i].sub_questions[j].values, strict)
         else:
             extend_values(first_hackathon[i].values, second_hackathon[i].values, strict)
 
@@ -122,7 +125,7 @@ def create_statistics_score_question(question: SurveyMeasure, values: list[list[
             final_values.append(round(statistics.fmean(participant_values)))
         statistical_values = create_statistics(final_values, question.question_type)
         if cronbach_alpha != None:
-            statistical_values.cronbach_alpha = cronbach_alpha[0]
+            statistical_values.cronbach_alpha = 0 if math.isnan(cronbach_alpha[0]) else cronbach_alpha[0]
         return statistical_values
 
 def create_analysis(hackathon: Hackathon):
