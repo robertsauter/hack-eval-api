@@ -5,7 +5,7 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 from typing import Annotated
 from fastapi import Depends
-from globals import DB_CONNECTION
+from lib.globals import DB_CONNECTION
 
 DB_NAME = 'hack-eval'
 
