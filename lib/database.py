@@ -5,12 +5,12 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 from typing import Annotated
 from fastapi import Depends
+from globals import DB_CONNECTION
 
-CONNECTION_STRING = 'mongodb://localhost:27017'
 DB_NAME = 'hack-eval'
 
 def database() -> Database:
-    client = MongoClient(CONNECTION_STRING)
+    client = MongoClient(DB_CONNECTION)
     return client[DB_NAME]
 
 def users_collection(database: Annotated[Database, Depends(database)]) -> Collection:
