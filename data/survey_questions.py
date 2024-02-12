@@ -124,100 +124,179 @@ QUESTIONS = [
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'I knew my team members well.',
-            'I have collaborated with some of my team members before.',
-            'I have been close to some of my team members before.',
-            'I have socialized with some of my team members (outside of this hackathon) before.'
+            {
+                'title': 'I knew my team members well.',
+                'values': []
+            },
+            {
+                'title': 'I have collaborated with some of my team members before.',
+                'values': []
+            },
+            {
+                'title': 'I have been close to some of my team members before.',
+                'values': []
+            },
+            {
+                'title': 'I have socialized with some of my team members (outside of this hackathon) before.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'Would you describe your team process as more...',
         'question_type': 'score_question',
         'answer_type': 'int',
         'sub_questions': [
-            '(1) Inefficient to (5) Efficient',
-            '(1) Uncoordinated to (5) Coordinated',
-            '(1) Unfair to (5) Fair',
-            '(1) Confusing to (5) Easy to understand'
-        ],
-        'values': []
+            {
+                'title': '(1) Inefficient to (5) Efficient',
+                'values': []
+            },
+            {
+                'title': '(1) Uncoordinated to (5) Coordinated',
+                'values': []
+            },
+            {
+                'title': '(1) Unfair to (5) Fair',
+                'values': []
+            },
+            {
+                'title': '(1) Confusing to (5) Easy to understand',
+                'values': []
+            }
+        ]
     },
     {
         'title': 'Please indicate your level of agreement with the following statements related to your GOALS as a team.',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'I was uncertain of my duties and responsibilities in this team.',
-            'I was unclear about the goals and objectives for my work in this team.',
-            'I was unsure how my work relates to the overall objectives of my team.',
+            {
+                'title': 'I was uncertain of my duties and responsibilities in this team.',
+                'values': []
+            },
+            {
+                'title': 'I was unclear about the goals and objectives for my work in this team.',
+                'values': []
+            },
+            {
+                'title': 'I was unsure how my work relates to the overall objectives of my team.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'Please indicate your level of agreement with the following statements about your TEAM.',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'Everyone had a chance to express his/her opinion.',
-            'The team members responded to the comments made by others.',
-            'The team members participated very actively during the project.',
-            'Overall, the participation of each member in the team was effective.'
+            {
+                'title': 'Everyone had a chance to express his/her opinion.',
+                'values': []
+            },
+            {
+                'title': 'The team members responded to the comments made by others.',
+                'values': []
+            },
+            {
+                'title': 'The team members participated very actively during the project.',
+                'values': []
+            },
+            {
+                'title': 'Overall, the participation of each member in the team was effective.',
+                'values': []
+            }
         ],
         'answers': DISAGREE_TO_AGREE,
-        'values': []
     },
     {
         'title': 'Please indicate your level of agreement with the following statements related to your SATISFACTION with your project.',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'I am satisfied with the work completed in my project.',
-            "I am satisfied with the quality of my team's output.",
-            'My ideal outcome coming into my project achieved.',
-            'My expectations towards my team were met.'
+            {
+                'title': 'I am satisfied with the work completed in my project.',
+                'values': []
+            },
+            {
+                'title': "I am satisfied with the quality of my team's output.",
+                'values': []
+            },
+            {
+                'title': 'My ideal outcome coming into my project achieved.',
+                'values': []
+            },
+            {
+                'title': 'My expectations towards my team were met.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'Please indicate your level of agreement with the following statements related to the USEFULNESS of your project.',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'My project improves my performance during my everyday work.',
-            'My project improves my productivity during my everyday work.',
-            'My project improves my effectiveness during my everyday work.',
-            'Overall, my project will be useful during my everyday work.'
+            {
+                'title': 'My project improves my performance during my everyday work.',
+                'values': []
+            },
+            {
+                'title': 'My project improves my productivity during my everyday work.',
+                'values': []
+            },
+            {
+                'title': 'My project improves my effectiveness during my everyday work.',
+                'values': []
+            },
+            {
+                'title': 'Overall, my project will be useful during my everyday work.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'Please indicate your FUTURE INTENTIONS related to your hackathon project.',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'I intend to continue working on my hackathon project rather than not continue working on it.',
-            'My intentions are to continue working on my hackathon project rather than any other project.',
-            'If I could, I would like to continue working on my hackathon project as much as possible.',
+            {
+                'title': 'I intend to continue working on my hackathon project rather than not continue working on it.',
+                'values': []
+            },
+            {
+                'title': 'My intentions are to continue working on my hackathon project rather than any other project.',
+                'values': []
+            },
+            {
+                'title': 'If I could, I would like to continue working on my hackathon project as much as possible.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'Please indicate your level of agreement with the following statements related to your ABILITY to continue working on your hackathon project.',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'I would be able to continue working on my hackathon project.',
-            'Continuing to work on my hackathon project is entirely under my control.',
-            'I have the resources, knowledge, and ability to continue working on my project after the hackathon.',
+            {
+                'title': 'I would be able to continue working on my hackathon project.',
+                'values': []
+            },
+            {
+                'title': 'Continuing to work on my hackathon project is entirely under my control.',
+                'values': []
+            },
+            {
+                'title': 'I have the resources, knowledge, and ability to continue working on my project after the hackathon.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'To what extent do you agree with the following statements about THE SUPPORT THE MENTORS PROVIDED during this hackathon?',
@@ -268,27 +347,51 @@ QUESTIONS = [
         'question_type': 'score_question',
         'answer_type': 'int',
         'sub_questions': [
-            '(1) Very dissatisfied to (5) Very satisfied',
-            '(1) Very displeased to (5) Very pleased',
-            '(1) Very frustrated to (5) Very contented',
-            '(1) Absolutely terrible to (5) Absolutely delighted',
-        ],
-        'values': []
+            {
+                'title': '(1) Very dissatisfied to (5) Very satisfied',
+                'values': []
+            },
+            {
+                'title': '(1) Very displeased to (5) Very pleased',
+                'values': []
+            },
+            {
+                'title': '(1) Very frustrated to (5) Very contented',
+                'values': []
+            },
+            {
+                'title': '(1) Absolutely terrible to (5) Absolutely delighted',
+                'values': []
+            }
+        ]
     },
     {
         'title': 'Do people identify with the community?',
         'question_type': 'score_question',
         'answer_type': 'string_to_int',
         'sub_questions': [
-            'I identify with other members of this community.',
-            'I am like other members of this community.',
-            'This community is an important reflection of who I am.',
-            'I would like to continue working with this community.',
-            'I dislike being a member of this community.',
-            'I would rather belong to another community.'
+            {
+                'title': 'I identify with other members of this community.',
+                'values': []
+            },
+            {
+                'title': 'I am like other members of this community.',
+                'values': []
+            },
+            {
+                'title': 'This community is an important reflection of who I am.',
+                'values': []
+            },
+            {
+                'title': 'I would like to continue working with this community.',
+                'values': []
+            },
+            {
+                'title': 'I would rather belong to another community.',
+                'values': []
+            }
         ],
-        'answers': DISAGREE_TO_AGREE,
-        'values': []
+        'answers': DISAGREE_TO_AGREE
     },
     {
         'title': 'Do you plan to participate in a similar event in the future?',

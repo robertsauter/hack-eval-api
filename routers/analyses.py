@@ -1,3 +1,5 @@
+'''Routes for filtering hackathons and creating analysis data'''
+
 from fastapi import APIRouter, Depends
 import json
 from typing import Annotated
@@ -11,6 +13,9 @@ from lib.http_exceptions import HTTP_422
 from models.Hackathon import Hackathon, SurveyMeasure
 import statistics
 from models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, AnalysisSubQuestion
+import pandas as pd
+import pingouin as pg
+import math
 
 router = APIRouter()
 
@@ -56,6 +61,16 @@ def combine_hackathon_values(first_hackathon: list[SurveyMeasure], second_hackat
         if first_hackathon[i].question_type == 'group_question':
             for j in range(len(first_hackathon[i].sub_questions)):
                 extend_values(first_hackathon[i].sub_questions[j].values, second_hackathon[i].sub_questions[j].values, strict)
+        elif first_hackathon[i].question_type == 'score_question':
+            #Don't return score questions where subquestions don't have the same amount of values
+            length = len(second_hackathon[i].sub_questions[0].values)
+            is_uneven = False
+            for j in range(len(second_hackathon[i].sub_questions)):
+                if len(second_hackathon[i].sub_questions[j].values) != length:
+                    is_uneven = True
+            if not is_uneven:
+                for j in range(len(first_hackathon[i].sub_questions)):
+                    extend_values(first_hackathon[i].sub_questions[j].values, second_hackathon[i].sub_questions[j].values, strict)
         else:
             extend_values(first_hackathon[i].values, second_hackathon[i].values, strict)
 
@@ -93,6 +108,26 @@ def create_statistics(values: list[int | str], question_type: str):
         average=average
     )
 
+def create_statistics_score_question(question: SurveyMeasure, values: list[list[int]], is_empty: bool):
+    '''Create statistical values for a score question'''
+    if is_empty:
+        return create_statistics([], question.question_type)
+    else:
+        sub_question_dataframe = pd.DataFrame(values)
+        cronbach_alpha = None
+        if len(values) > 0 and len(values[0]) > 0:
+            cronbach_alpha = pg.cronbach_alpha(sub_question_dataframe)
+        final_values = []
+        for i in range(len(values[0])):
+            participant_values = []
+            for j in range(len(values)):
+                participant_values.append(values[j][i])
+            final_values.append(round(statistics.fmean(participant_values)))
+        statistical_values = create_statistics(final_values, question.question_type)
+        if cronbach_alpha != None:
+            statistical_values.cronbach_alpha = 0 if math.isnan(cronbach_alpha[0]) else cronbach_alpha[0]
+        return statistical_values
+
 def create_analysis(hackathon: Hackathon):
     '''Create an object, that contains statistical values for every measure of a survey'''
     analysis = Analysis(
@@ -116,6 +151,16 @@ def create_analysis(hackathon: Hackathon):
                 measure_sub_question = AnalysisSubQuestion(title=sub_question.title)
                 measure_sub_question.statistical_values = create_statistics(sub_question.values, question.question_type)
                 measure.sub_questions.append(measure_sub_question)
+        elif question.question_type == 'score_question':
+            values = []
+            measure.sub_questions = []
+            is_sub_question_empty = False
+            for sub_question in question.sub_questions:
+                values.append(sub_question.values)
+                measure.sub_questions.append(sub_question.title)
+                if len(sub_question.values) == 0:
+                    is_sub_question_empty = True
+            measure.statistical_values = create_statistics_score_question(question, values, is_sub_question_empty)
         else:
             measure.statistical_values = create_statistics(question.values, question.question_type)
         analysis.results.append(measure)
@@ -143,7 +188,7 @@ def get_analyses(
             #Append analysis with empty results
             analyses.append(Analysis(
                 title=filter_combination['name'],
-                incentives='collaboration',
+                incentives='cooperative',
                 venue='hybrid',
                 size='small',
                 types=['analysis']
