@@ -1,33 +1,10 @@
-NOTATALL_TO_COMPLETELY = {
-    'Not at all': 1,
-    'To some extent': 2,
-    'To a moderate extent': 3,
-    'To a large extent': 4,
-    'Completely': 5
-}
-
 DISAGREE_TO_AGREE = {
-    'Strongly disagree': 1,
-    'Somewhat disagree': 2,
-    'Neither agree nor disagree': 3,
-    'Somewhat agree': 4,
-    'Strongly agree': 5
+    "Strongly disagree": 1,
+    "Somewhat disagree": 2,
+    "Neither agree nor disagree": 3,
+    "Somewhat agree": 4,
+    "Strongly agree": 5
 }
-
-SESSIONS = [
-    {
-        'title': 'Pre-event webinar',
-        'values': []
-    },
-    {
-        'title': 'Checkpoints',
-        'values': []
-    },
-    {
-        'title': 'Mentoring sessions',
-        'values': []
-    }
-]
 
 QUESTIONS = [
     {
@@ -166,13 +143,7 @@ QUESTIONS = [
                 "keywords": "(?=.*socialized)(?=.*team)(?=.*members)(?=.*outside)(?=.*hackathon)|(?=.*socialized)(?=.*team)(?=.*members)(?=.*outside)(?=.*work)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*well)(?=.*know)(?=.*team)(?=.*members)"
     },
     {
@@ -224,13 +195,7 @@ QUESTIONS = [
                 "keywords": "(?=.*unsure)(?=.*work)(?=.*relates)(?=.*overall)(?=.*objectives)(?=.*team)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*agree)(?=.*following)(?=.*statements)(?=.*related)(?=.*goals)(?=.*team)|(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*related)(?=.*group)(?=.*previously)(?=.*identified)"
     },
     {
@@ -259,13 +224,7 @@ QUESTIONS = [
                 "keywords": "(?=.*overall)(?=.*participation)(?=.*member)(?=.*team)(?=.*effective)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*indicate)(?=.*level)(?=.*agreement)(?=.*following)(?=.*statements)(?=.*team)(?!.*goals)|(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*team's)(?=.*work)(?!.*goals)|(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*related)(?=.*communication)(?=.*within)(?=.*team)|(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*group's)(?=.*work)"
     },
     {
@@ -294,13 +253,7 @@ QUESTIONS = [
                 "keywords": "(?=.*expectations)(?=.*towards)(?=.*team)(?=.*met)|(?=.*expectations)(?=.*towards)(?=.*project)(?=.*met)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*indicate)(?=.*level)(?=.*agreement)(?=.*following)(?=.*statements)(?=.*related)(?=.*satisfaction)(?=.*project)|(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*team's)(?=.*project)|(?=.*extend)(?=.*agree)(?=.*following)(?=.*statements)(?=.*team's)(?=.*project)"
     },
     {
@@ -329,13 +282,7 @@ QUESTIONS = [
                 "keywords": "(?=.*overall)(?=.*project)(?=.*useful)(?=.*everyday)(?=.*work)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*indicate)(?=.*level)(?=.*agreement)(?=.*following)(?=.*statements)(?=.*related)(?=.*usefulness)(?=.*project)"
     },
     {
@@ -359,13 +306,7 @@ QUESTIONS = [
                 "keywords": "(?=.*could)(?=.*would)(?=.*like)(?=.*continue)(?=.*working)(?=.*hackathon)(?=.*project)(?=.*much)(?=.*possible)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*indicate)(?=.*future)(?=.*intentions)(?=.*related)(?=.*hackathon)(?=.*project)|(?=.*continuing)(?=.*work)(?=.*project)(?=.*future)|(?=.*please)(?=.*indicate)(?=.*level)(?=.*agreement)(?=.*following)(?=.*statements)(?=.*related)(?=.*practices)(?=.*tools)(?=.*identified)"
     },
     {
@@ -389,13 +330,7 @@ QUESTIONS = [
                 "keywords": "(?=.*resources)(?=.*knowledge)(?=.*ability)(?=.*continue)(?=.*working)(?=.*project)(?=.*hackathon)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*indicate)(?=.*level)(?=.*agreement)(?=.*following)(?=.*statements)(?=.*related)(?=.*ability)(?=.*continue)(?=.*working)(?=.*hackathon)(?=.*project)"
     },
     {
@@ -449,13 +384,7 @@ QUESTIONS = [
                 "keywords": "(?=.*could)(?=.*reach)(?=.*mentors)(?=.*needed)(?=.*help)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*support)(?=.*mentor)(?=.*provided)"
     },
     {
@@ -522,13 +451,7 @@ QUESTIONS = [
                 "keywords": "(?=.*would)(?=.*rather)(?=.*belong)(?=.*another)(?=.*community)"
             }
         ],
-        "answers": {
-            "Strongly disagree": 1,
-            "Somewhat disagree": 2,
-            "Neither agree nor disagree": 3,
-            "Somewhat agree": 4,
-            "Strongly agree": 5
-        },
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*people)(?=.*identify)(?=.*community)"
     },
     {
@@ -587,6 +510,7 @@ QUESTIONS = [
                 "keywords": "(?=.*know)(?=.*people)(?=.*community)(?=.*well)(?=.*enough)(?=.*get)(?=.*anything)(?=.*important)"
             }
         ],
+        "answers": DISAGREE_TO_AGREE,
         "keywords": "(?=.*extent)(?=.*agree)(?=.*following)(?=.*statements)(?=.*relationship)(?=.*community)|(?=.*experience)(?=.*part)(?=.*community)(?=.*around)(?=.*hackathon)"
     },
     {

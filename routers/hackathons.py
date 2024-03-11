@@ -114,9 +114,9 @@ def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, 
 
 
 def find_question_google(question: SurveyMeasure, items: list[SurveyItem]) -> dict | str | None:
-    '''Get a single question from Google Forms survey data'''
+    '''Get a question id or all subquestion ids from Google Forms survey data'''
     for item in items:
-        if item.title != None and item.title == question.title:
+        if item.title != None and match_question(question, item.title):
             match question.question_type:
                 case 'single_question' | 'category_question':
                     return item.questionItem.question.questionId
@@ -124,10 +124,9 @@ def find_question_google(question: SurveyMeasure, items: list[SurveyItem]) -> di
                     if item.questionGroupItem != None:
                         group_question = {}
                         for sub_question in question.sub_questions:
-                            title = sub_question if question.question_type == 'score_question' else sub_question.title
                             for group_item in item.questionGroupItem.questions:
-                                if group_item.rowQuestion.title != None and title == group_item.rowQuestion.title:
-                                    group_question[title] = group_item.questionId
+                                if group_item.rowQuestion.title != None and match_question(sub_question, group_item.rowQuestion.title):
+                                    group_question[sub_question.title] = group_item.questionId
                                     break
                         return group_question
                     else:
