@@ -11,8 +11,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=['http://localhost:5173', 'https://hack-eval.vercel.app'],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 @app.middleware('http')

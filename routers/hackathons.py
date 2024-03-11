@@ -3,7 +3,7 @@
 from fastapi import APIRouter, UploadFile, Form, Depends
 from models.RawHackathon import RawHackathon, RawAnswer
 from models.HackathonInformation import HackathonInformationWithId
-from models.Hackathon import Hackathon, SurveyMeasure
+from models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
 from data.survey_questions import QUESTIONS
 from lib.http_exceptions import HTTP_415
 import pandas as pd
@@ -17,24 +17,49 @@ from lib.globals import SECRET_KEY, ALGORITHM, OAUTH2_SCHEME
 from bson.objectid import ObjectId
 from models.Survey import SurveyItem
 import copy
+from thefuzz import fuzz
+import re
 
 router = APIRouter()
 
+def match_question(question: SurveyMeasure | SubQuestion, match_string: str):
+    '''Match for keywords, if keywords are defined, otherwise fuzzy match question title'''
+    matching = False
+    if question.keywords != None:
+        pattern = re.compile(question.keywords, re.IGNORECASE)
+        matching = pattern.search(match_string) != None
+        if not matching:
+            matching = fuzz.ratio(question.title, match_string) > 80
+    else:
+        matching = fuzz.ratio(question.title, match_string) > 80
+    return matching
+
 def set_value_csv(question: SurveyMeasure, raw_results: DataFrame):
     '''Set the value for a simple question from a CSV file'''
-    if question.title in raw_results:
-        for value in raw_results[question.title]:
-            real_value = get_real_value(question, value)
-            question.values.append(real_value)
+    for title in raw_results.keys():
+        contained = match_question(question, title)
+        if contained:
+            print(f'Identified single question: {title}')
+            for value in raw_results[title]:
+                real_value = get_real_value(question, value)
+                question.values.append(real_value)
+            return
+        
 
 def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame):
     '''Set the values for a group question from a CSV file'''
     for sub_question in question.sub_questions:
-        title = f'{question.title} [{sub_question.title}]'
-        if title in raw_results:
-            for value in raw_results[title]:
-                real_value = get_real_value(question, value)
-                sub_question.values.append(real_value)
+        for title in raw_results.keys():
+            title_parts = title.split('[')
+            if len(title_parts) > 1:
+                question_contained = match_question(question, title_parts[0])
+                sub_question_contained = match_question(sub_question, title_parts[1])
+                if question_contained and sub_question_contained:
+                    print(f'Identified group question: {title}')
+                    for value in raw_results[title]:
+                        real_value = get_real_value(question, value)
+                        sub_question.values.append(real_value)
+                    break
 
 def map_hackathon_results_csv(empty_hackathon: Hackathon, raw_results: DataFrame):
     '''Map a hackathon from a CSV file to a hackathon object'''
