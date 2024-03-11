@@ -2,12 +2,14 @@
 
 from fastapi import HTTPException, status
 
+
 def HTTP_401(message: str) -> None:
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=message,
-        headers={ 'WWW-Authenticate': 'Bearer' }
+        headers={'WWW-Authenticate': 'Bearer'}
     )
+
 
 def HTTP_409(message: str) -> None:
     raise HTTPException(
@@ -15,11 +17,13 @@ def HTTP_409(message: str) -> None:
         detail=message
     )
 
+
 def HTTP_415(message: str) -> None:
     raise HTTPException(
         status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         detail=message
     )
+
 
 def HTTP_422(message: str) -> None:
     raise HTTPException(

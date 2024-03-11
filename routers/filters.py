@@ -11,12 +11,13 @@ from bson import ObjectId
 
 router = APIRouter()
 
+
 @router.post('')
 def save_filter_combination(
     filter: Filter,
     filters_collection: Annotated[Collection, Depends(filters_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
-    ) -> Filter:
+) -> Filter:
     '''Save a filter combination in the database'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     filter_dict = filter.model_dump()
@@ -24,15 +25,16 @@ def save_filter_combination(
     filters_collection.insert_one(filter_dict)
     return filter
 
+
 @router.get('')
 def get_filters_by_user_id(
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
     filters_collection: Annotated[Collection, Depends(filters_collection)]
-    ) -> list[FilterWithId]:
+) -> list[FilterWithId]:
     '''Get all saved filter combinations of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     found_filters = []
-    for filter in filters_collection.find({ 'created_by': user_id }):
+    for filter in filters_collection.find({'created_by': user_id}):
         found_filters.append(FilterWithId(
             id=str(filter['_id']),
             name=filter['name'],
@@ -43,12 +45,13 @@ def get_filters_by_user_id(
         ))
     return found_filters
 
+
 @router.delete('/{filter_id}')
 def delete_filter(
     filter_id: str,
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
     filters_collection: Annotated[Collection, Depends(filters_collection)]
-    ) -> str:
+) -> str:
     '''Delete the filter combination with the given id'''
-    filters_collection.delete_one({ '_id': ObjectId(filter_id) })
+    filters_collection.delete_one({'_id': ObjectId(filter_id)})
     return 'Success'

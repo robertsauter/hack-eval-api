@@ -15,12 +15,13 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+
 @app.middleware('http')
 async def check_if_token_expired(request: Request, call_next):
     '''This is run before every request. If the request contains a token, check if it expired'''
     auth = request.headers.get('Authorization')
     if auth and auth.startswith('Bearer'):
-        token = auth.split(' ', maxsplit=1)[1]        
+        token = auth.split(' ', maxsplit=1)[1]
         try:
             jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         except ExpiredSignatureError:
