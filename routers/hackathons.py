@@ -20,21 +20,22 @@ import copy
 from thefuzz import fuzz
 import re
 
+SIMILARITY = 85
+
 router = APIRouter()
 
-def match_question(question: SurveyMeasure | SubQuestion, match_string: str):
-    '''Match for keywords, if keywords are defined, otherwise fuzzy match question title'''
+
+def match_question(question: SurveyMeasure | SubQuestion, match_string: str) -> bool:
+    '''Match for keywords in a title of an uploaded survey. If keywords do not match, try with fuzzy string matching'''
     matching = False
-    if question.keywords != None:
-        pattern = re.compile(question.keywords, re.IGNORECASE)
-        matching = pattern.search(match_string) != None
-        if not matching:
-            matching = fuzz.ratio(question.title, match_string) > 80
-    else:
-        matching = fuzz.ratio(question.title, match_string) > 80
+    pattern = re.compile(question.keywords, re.IGNORECASE)
+    matching = pattern.search(match_string) != None
+    if not matching:
+        matching = fuzz.ratio(question.title, match_string) > SIMILARITY
     return matching
 
-def set_value_csv(question: SurveyMeasure, raw_results: DataFrame):
+
+def set_value_csv(question: SurveyMeasure, raw_results: DataFrame) -> None:
     '''Set the value for a simple question from a CSV file'''
     for title in raw_results.keys():
         contained = match_question(question, title)
@@ -44,16 +45,17 @@ def set_value_csv(question: SurveyMeasure, raw_results: DataFrame):
                 real_value = get_real_value(question, value)
                 question.values.append(real_value)
             return
-        
 
-def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame):
+
+def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame) -> None:
     '''Set the values for a group question from a CSV file'''
     for sub_question in question.sub_questions:
         for title in raw_results.keys():
             title_parts = title.split('[')
             if len(title_parts) > 1:
                 question_contained = match_question(question, title_parts[0])
-                sub_question_contained = match_question(sub_question, title_parts[1])
+                sub_question_contained = match_question(
+                    sub_question, title_parts[1])
                 if question_contained and sub_question_contained:
                     print(f'Identified group question: {title}')
                     for value in raw_results[title]:
@@ -61,7 +63,8 @@ def set_value_group_question_csv(question: SurveyMeasure, raw_results: DataFrame
                         sub_question.values.append(real_value)
                     break
 
-def map_hackathon_results_csv(empty_hackathon: Hackathon, raw_results: DataFrame):
+
+def map_hackathon_results_csv(empty_hackathon: Hackathon, raw_results: DataFrame) -> None:
     '''Map a hackathon from a CSV file to a hackathon object'''
     for question in empty_hackathon.results:
         match question.question_type:
@@ -70,7 +73,8 @@ def map_hackathon_results_csv(empty_hackathon: Hackathon, raw_results: DataFrame
             case 'group_question' | 'score_question':
                 set_value_group_question_csv(question, raw_results)
 
-def get_real_value(question: SurveyMeasure, value: str | int):
+
+def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
     '''Check which type of answer is expected and map, if possible'''
     match question.answer_type:
         case 'int':
@@ -89,14 +93,16 @@ def get_real_value(question: SurveyMeasure, value: str | int):
                 return question.answers[value]
             return 0
 
-def set_value_google(question: SurveyMeasure, answers: dict[str, RawAnswer], item_id: str):
+
+def set_value_google(question: SurveyMeasure, answers: dict[str, RawAnswer], item_id: str) -> None:
     '''Set the value for simple questions from Google Forms data'''
     if item_id in answers:
         value = answers[item_id].textAnswers.answers[0].value
         real_value = get_real_value(question, value)
         question.values.append(real_value)
 
-def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict):
+
+def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict) -> None:
     '''Set the values for a group question from Google Forms data'''
     for sub_question in question.sub_questions:
         if sub_question.title in sub_items:
@@ -106,7 +112,8 @@ def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, 
                 real_value = get_real_value(question, value)
                 sub_question.values.append(real_value)
 
-def find_question_google(question: SurveyMeasure, items: list[SurveyItem]):
+
+def find_question_google(question: SurveyMeasure, items: list[SurveyItem]) -> dict | str | None:
     '''Get a single question from Google Forms survey data'''
     for item in items:
         if item.title != None and item.title == question.title:
@@ -126,11 +133,13 @@ def find_question_google(question: SurveyMeasure, items: list[SurveyItem]):
                     else:
                         return None
 
-def map_hackathon_results_google(empty_hackathon: Hackathon, raw_hackathon: RawHackathon):
+
+def map_hackathon_results_google(empty_hackathon: Hackathon, raw_hackathon: RawHackathon) -> None:
     '''Map a hackathon from Google forms to a hackathon object'''
     questions_in_hackathon = {}
     for question in empty_hackathon.results:
-        found_question = find_question_google(question, raw_hackathon.survey.items)
+        found_question = find_question_google(
+            question, raw_hackathon.survey.items)
         if found_question != None:
             questions_in_hackathon[question.title] = found_question
     for response in raw_hackathon.results.responses:
@@ -138,9 +147,12 @@ def map_hackathon_results_google(empty_hackathon: Hackathon, raw_hackathon: RawH
             if question.title in questions_in_hackathon:
                 match question.question_type:
                     case 'single_question' | 'category_question':
-                        set_value_google(question, response.answers, questions_in_hackathon[question.title])
+                        set_value_google(
+                            question, response.answers, questions_in_hackathon[question.title])
                     case 'group_question' | 'score_question':
-                        set_value_group_question_google(question, response.answers, questions_in_hackathon[question.title])
+                        set_value_group_question_google(
+                            question, response.answers, questions_in_hackathon[question.title])
+
 
 @router.post('/csv')
 def upload_hackathon_csv(
@@ -153,7 +165,7 @@ def upload_hackathon_csv(
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
     link: Annotated[str | None, Form()] = None,
-):
+) -> Hackathon | None:
     '''Save a hackathon in the database from a CSV file'''
     if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
         user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
@@ -175,12 +187,13 @@ def upload_hackathon_csv(
     else:
         HTTP_415('Please provide a csv file.')
 
+
 @router.post('/google')
 def upload_hackathon_google(
     raw_hackathon: RawHackathon,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
-):
+) -> Hackathon:
     '''Save a hackathon from Google Forms in the database'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     hackathon = Hackathon(
@@ -197,11 +210,12 @@ def upload_hackathon_google(
     hackathons.insert_one(hackathon.model_dump())
     return hackathon
 
+
 @router.get('')
 def get_hackathons_by_user_id(
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
-    ) -> list[HackathonInformationWithId]:
+) -> list[HackathonInformationWithId]:
     '''Find all hackathons of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     found_hackathons = []
@@ -217,12 +231,13 @@ def get_hackathons_by_user_id(
         ))
     return found_hackathons
 
+
 @router.delete('/{hackathon_id}')
 def delete_hackathon(
     hackathon_id: str,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
-    ) -> str:
+) -> str:
     '''Delete a hackathon with the given id'''
-    hackathons.delete_one({'_id': ObjectId(hackathon_id)});
+    hackathons.delete_one({'_id': ObjectId(hackathon_id)})
     return 'Success'
