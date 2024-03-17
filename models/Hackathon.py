@@ -7,6 +7,7 @@ class SubQuestion(BaseModel):
     title: str
     values: list[int | str]
     keywords: str | None = None
+    reverse: bool = False
 
 
 class SurveyMeasure(BaseModel):

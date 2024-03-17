@@ -182,17 +182,20 @@ QUESTIONS = [
             {
                 "title": "I was uncertain of my duties and responsibilities in this team.",
                 "values": [],
-                "keywords": "(?=.*uncertain)(?=.*duties)(?=.*responsibilities)(?=.*team)"
+                "keywords": "(?=.*uncertain)(?=.*duties)(?=.*responsibilities)(?=.*team)",
+                "reverse": True
             },
             {
                 "title": "I was unclear about the goals and objectives for my work in this team.",
                 "values": [],
-                "keywords": "(?=.*unclear)(?=.*goals)(?=.*objectives)(?=.*work)(?=.*team)"
+                "keywords": "(?=.*unclear)(?=.*goals)(?=.*objectives)(?=.*work)(?=.*team)",
+                "reverse": True
             },
             {
                 "title": "I was unsure how my work relates to the overall objectives of my team.",
                 "values": [],
-                "keywords": "(?=.*unsure)(?=.*work)(?=.*relates)(?=.*overall)(?=.*objectives)(?=.*team)"
+                "keywords": "(?=.*unsure)(?=.*work)(?=.*relates)(?=.*overall)(?=.*objectives)(?=.*team)",
+                "reverse": True
             }
         ],
         "answers": DISAGREE_TO_AGREE,
@@ -443,12 +446,14 @@ QUESTIONS = [
             {
                 "title": "I dislike being a member of this community",
                 "values": [],
-                "keywords": "(?=.*dislike)(?=.*member)(?=.*community)"
+                "keywords": "(?=.*dislike)(?=.*member)(?=.*community)",
+                "reverse": True
             },
             {
                 "title": "I would rather belong to another community.",
                 "values": [],
-                "keywords": "(?=.*would)(?=.*rather)(?=.*belong)(?=.*another)(?=.*community)"
+                "keywords": "(?=.*would)(?=.*rather)(?=.*belong)(?=.*another)(?=.*community)",
+                "reverse": True
             }
         ],
         "answers": DISAGREE_TO_AGREE,
@@ -507,7 +512,8 @@ QUESTIONS = [
             {
                 "title": "I do not know people in this community well enough to get them to do anything important.",
                 "values": [],
-                "keywords": "(?=.*know)(?=.*people)(?=.*community)(?=.*well)(?=.*enough)(?=.*get)(?=.*anything)(?=.*important)"
+                "keywords": "(?=.*know)(?=.*people)(?=.*community)(?=.*well)(?=.*enough)(?=.*get)(?=.*anything)(?=.*important)",
+                "reverse": True
             }
         ],
         "answers": DISAGREE_TO_AGREE,

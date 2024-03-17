@@ -121,9 +121,9 @@ def create_statistics(values: list[int | str], question_type: str) -> Statistica
     )
 
 
-def create_statistics_score_question(question: SurveyMeasure, values: list[list[int]], is_empty: bool) -> StatisticalValues:
+def create_statistics_score_question(question: SurveyMeasure, values: list[list[int]], sub_question_missing: bool) -> StatisticalValues:
     '''Create statistical values for a score question'''
-    if is_empty:
+    if sub_question_missing:
         return create_statistics([], question.question_type)
     else:
         sub_question_dataframe = pd.DataFrame(values)
@@ -174,7 +174,12 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
             measure.sub_questions = []
             is_sub_question_empty = False
             for sub_question in question.sub_questions:
-                values.append(sub_question.values)
+                sub_values = sub_question.values
+                if sub_question.reverse:
+                    max_value = len(question.answers.values())
+                    sub_values = list(map(lambda value: abs(
+                        value - (max_value + 1)), sub_values))
+                values.append(sub_values)
                 measure.sub_questions.append(sub_question.title)
                 if len(sub_question.values) == 0:
                     is_sub_question_empty = True
