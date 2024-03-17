@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, Form, Depends
 from models.RawHackathon import RawHackathon, RawAnswer
 from models.HackathonInformation import HackathonInformationWithId
 from models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
-from data.survey_questions import QUESTIONS
+from data.survey_questions import QUESTIONS, MISSING_VALUE_TITLE
 from lib.http_exceptions import HTTP_415
 import pandas as pd
 from pandas import DataFrame
@@ -86,7 +86,7 @@ def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
             if question.question_type == 'category_question':
                 if value in question.answers:
                     return value
-                return question.answers[0]
+                return MISSING_VALUE_TITLE
             return value
         case 'string_to_int':
             if value in question.answers:

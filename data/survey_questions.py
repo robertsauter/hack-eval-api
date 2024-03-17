@@ -6,6 +6,8 @@ DISAGREE_TO_AGREE = {
     "Strongly agree": 5
 }
 
+MISSING_VALUE_TITLE = "No answer given"
+
 QUESTIONS = [
     {
         "title": "To what extent was your decision to participate in this hackathon motivated by...",
@@ -89,7 +91,8 @@ QUESTIONS = [
         "answers": [
             "Yes, I was the team leader.",
             "Yes, someone else was the team leader.",
-            "No, there was no clear leader in the team."
+            "No, there was no clear leader in the team.",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*team)(?=.*leader)|(?=.*group)(?=.*leader)"
     },
@@ -101,7 +104,8 @@ QUESTIONS = [
         "answers": [
             "Yes, I was the project manager.",
             "Yes, someone else was the project manager.",
-            "No, there was no clear project manager in the team."
+            "No, there was no clear project manager in the team.",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*project)(?=.*manager)"
     },
@@ -113,7 +117,8 @@ QUESTIONS = [
         "answers": [
             "Yes, I was the social-emotional leader.",
             "Yes, someone else was the social-emotional leader.",
-            "No, there was no clear social-emotional in the team."
+            "No, there was no clear social-emotional in the team.",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*social-emotional)(?=.*leader)"
     },
@@ -574,7 +579,8 @@ QUESTIONS = [
             "55 to 64",
             "65 to 74",
             "75 or older",
-            "Prefer not to say"
+            "Prefer not to say",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*old)(?=.*currently)|(?=.*your)(?=.*age)"
     },
@@ -587,7 +593,8 @@ QUESTIONS = [
             "Female",
             "Male",
             "Non-binary",
-            "Prefer not to say"
+            "Prefer not to say",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*are)(?=.*you\.\.\.\?)|(?=.*following)(?=.*accurately)(?=.*describe)(?=.*you)|(?=.*gender)^((?!minority).)*$"
     },
@@ -604,7 +611,8 @@ QUESTIONS = [
             "Professional degree",
             "Master's degree",
             "Doctorate",
-            "Prefer not to say"
+            "Prefer not to say",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*highest)(?=.*level)(?=.*formal)(?=.*education)(?=.*completed)"
     },
@@ -616,7 +624,8 @@ QUESTIONS = [
         "answers": [
             "Yes",
             "No",
-            "Prefer not to say"
+            "Prefer not to say",
+            MISSING_VALUE_TITLE
         ],
         "keywords": "(?=.*consider)(?=.*yourself)(?=.*minority)"
     }
