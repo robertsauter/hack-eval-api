@@ -79,7 +79,8 @@ def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
     match question.answer_type:
         case 'int':
             try:
-                return int(value)
+                value = int(value)
+                return 0 if question.question_type == 'single_question' and value > 200 else value
             except:
                 return 0
         case 'string':
