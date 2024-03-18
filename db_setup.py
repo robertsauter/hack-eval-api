@@ -1,3 +1,5 @@
+'''Helper script to put all hackathon csv files in a given folder into the database'''
+
 from pymongo import MongoClient
 import pandas as pd
 import routers.hackathons as hack
@@ -26,7 +28,7 @@ for i, found_hackathon in overview.iterrows():
         types=found_hackathon['type'].split(','),
         venue=found_hackathon['venue'],
         results=copy.deepcopy(QUESTIONS),
-        created_by='65c8a97d9b5559df2bd83875'
+        created_by=''
     )
     file = pd.read_csv(f'{FOLDER_PATH}/{hackathon_id}.csv')
     hack.map_hackathon_results_csv(hackathon, file)
