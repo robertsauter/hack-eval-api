@@ -9,7 +9,7 @@ from data.survey_questions import QUESTIONS
 import nltk.corpus
 nltk.download('stopwords')
 
-FOLDER_PATH = 'C:/Users/rober/Documents/Studium/Master/Masterarbeit/Data'
+FOLDER_PATH = ''
 SIMILARITY = 85
 STOP_WORDS = stopwords.words('english')
 

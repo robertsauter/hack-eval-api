@@ -27,7 +27,7 @@ QUESTIONS = [
             {
                 "title": "Learning new tools or skills",
                 "values": [],
-                "keywords": "(?=.*learning)(?=.*new)(?=.*tools)(?=.*skills)|(?=.*learn)(?=.*try)(?=.*something)(?=.*new)"
+                "keywords": "(?=.*learning)(?=.*new)(?=.*tools)(?=.*skills)|(?=.*learn)(?=.*something)(?=.*new)|(?=.*learning)(?=.*about)(?=.*new)(?=.*technologies)"
             },
             {
                 "title": "Meeting new people",

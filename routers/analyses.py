@@ -174,13 +174,18 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
             measure.sub_questions = []
             is_sub_question_empty = False
             for sub_question in question.sub_questions:
+                measure_sub_question = AnalysisSubQuestion(
+                    title=sub_question.title)
+                measure_sub_question.statistical_values = create_statistics(
+                    sub_question.values, question.question_type)
+                measure.sub_questions.append(measure_sub_question)
+
                 sub_values = sub_question.values
                 if sub_question.reverse:
                     max_value = len(question.answers.values())
                     sub_values = list(map(lambda value: abs(
                         value - (max_value + 1)), sub_values))
                 values.append(sub_values)
-                measure.sub_questions.append(sub_question.title)
                 if len(sub_question.values) == 0:
                     is_sub_question_empty = True
             measure.statistical_values = create_statistics_score_question(
