@@ -16,6 +16,7 @@ from models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, Analys
 import pandas as pd
 import pingouin as pg
 import math
+from datetime import datetime
 
 router = APIRouter()
 
@@ -152,6 +153,8 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
         venue=hackathon.venue,
         size=hackathon.size,
         types=hackathon.types,
+        start=hackathon.start,
+        end=hackathon.end,
         link=hackathon.link
     )
     for question in hackathon.results:
@@ -224,6 +227,8 @@ def get_analyses(
                 incentives='cooperative',
                 venue='hybrid',
                 size='small',
-                types=['analysis']
+                types=['analysis'],
+                start=datetime.now(),
+                end=datetime.now()
             ))
     return analyses

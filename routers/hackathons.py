@@ -19,6 +19,7 @@ from models.Survey import SurveyItem
 import copy
 from thefuzz import fuzz
 import re
+from datetime import datetime
 
 SIMILARITY = 85
 
@@ -161,6 +162,8 @@ def upload_hackathon_csv(
     venue: Annotated[Venue, Form()],
     size: Annotated[Size, Form()],
     types: Annotated[str, Form()],
+    start: Annotated[datetime, Form()],
+    end: Annotated[datetime, Form()],
     file: UploadFile,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
@@ -177,6 +180,8 @@ def upload_hackathon_csv(
             size=size,
             types=type_list,
             link=link,
+            start=start,
+            end=end,
             results=copy.deepcopy(QUESTIONS),
             created_by=user_id
         )
@@ -202,6 +207,8 @@ def upload_hackathon_google(
         venue=raw_hackathon.venue,
         size=raw_hackathon.size,
         types=raw_hackathon.types,
+        start=raw_hackathon.start,
+        end=raw_hackathon.end,
         link=raw_hackathon.link,
         results=copy.deepcopy(QUESTIONS),
         created_by=user_id
@@ -227,6 +234,8 @@ def get_hackathons_by_user_id(
             venue=hackathon['venue'],
             size=hackathon['size'],
             types=hackathon['types'],
+            start=hackathon['start'],
+            end=hackathon['end'],
             link=hackathon['link']
         ))
     return found_hackathons
