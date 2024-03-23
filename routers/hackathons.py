@@ -1,6 +1,7 @@
 '''Routes for handling hackathon objects'''
 
 from fastapi import APIRouter, UploadFile, Form, Depends
+from models.Filter import Filter
 from models.RawHackathon import RawHackathon, RawAnswer
 from models.HackathonInformation import HackathonInformationWithId
 from models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
@@ -341,3 +342,33 @@ def delete_hackathon(
     '''Delete a hackathon with the given id'''
     hackathons.delete_one({'_id': ObjectId(hackathon_id)})
     return 'Success'
+
+
+@router.get('/amount')
+def get_amount_of_found_hackathons(
+    raw_filter: str,
+    hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
+) -> int:
+    '''Get the amount of hackathons, that can be found in the database with a given filter combination'''
+    filter_combination = Filter.model_validate_json(raw_filter)
+    db_filter = {}
+    if filter_combination.incentives != None and len(filter_combination.incentives) > 0:
+        db_filter['incentives'] = {
+            '$in': filter_combination.incentives
+        }
+    if filter_combination.venue != None and len(filter_combination.venue) > 0:
+        db_filter['venue'] = {
+            '$in': filter_combination.venue
+        }
+    if filter_combination.size != None and len(filter_combination.size) > 0:
+        db_filter['size'] = {
+            '$in': filter_combination.size
+        }
+    if filter_combination.types != None and len(filter_combination.types) > 0:
+        db_filter['types'] = {
+            '$elemMatch': {
+                '$in': filter_combination.types
+            }
+        }
+    return hackathons_collection.count_documents(db_filter)
