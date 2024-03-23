@@ -41,7 +41,8 @@ def get_filters_by_user_id(
             incentives=filter['incentives'],
             venue=filter['venue'],
             size=filter['size'],
-            types=filter['types']
+            types=filter['types'],
+            onlyOwn=filter['onlyOwn']
         ))
     return found_filters
 

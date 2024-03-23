@@ -352,6 +352,7 @@ def get_amount_of_found_hackathons(
 ) -> int:
     '''Get the amount of hackathons, that can be found in the database with a given filter combination'''
     filter_combination = Filter.model_validate_json(raw_filter)
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     db_filter = {}
     if filter_combination.incentives != None and len(filter_combination.incentives) > 0:
         db_filter['incentives'] = {
@@ -371,4 +372,7 @@ def get_amount_of_found_hackathons(
                 '$in': filter_combination.types
             }
         }
+    if filter_combination.onlyOwn:
+        db_filter['created_by'] = user_id
+
     return hackathons_collection.count_documents(db_filter)
