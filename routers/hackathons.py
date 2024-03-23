@@ -1,6 +1,7 @@
 '''Routes for handling hackathon objects'''
 
 from fastapi import APIRouter, UploadFile, Form, Depends
+from models.Filter import Filter
 from models.RawHackathon import RawHackathon, RawAnswer
 from models.HackathonInformation import HackathonInformationWithId
 from models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
@@ -19,6 +20,7 @@ from models.Survey import SurveyItem
 import copy
 from thefuzz import fuzz
 import re
+from datetime import datetime
 
 SIMILARITY = 85
 
@@ -154,6 +156,43 @@ def map_hackathon_results_google(empty_hackathon: Hackathon, raw_hackathon: RawH
                             question, response.answers, questions_in_hackathon[question.title])
 
 
+def concatenate_list_of_dict(dict_of_lists: dict[str, list], key: str, values: list) -> None:
+    '''Concatenate a list in a dict with another list'''
+    if key in dict_of_lists:
+        dict_of_lists[key] += values
+    else:
+        dict_of_lists[key] = values
+
+
+def get_numerical_values(question: SurveyMeasure, values: list[str | int]) -> list[int]:
+    '''Get the values of a question or subquestion in numerical form'''
+    numerical_values = []
+    for value in values:
+        if question.answer_type == 'string':
+            numerical_values.append(question.answers.index(value))
+        else:
+            numerical_values.append(value)
+    return numerical_values
+
+
+def fill_dict_with_hackathon_information(dict_of_lists: dict[str, list], hackathon: Hackathon, participants: int) -> None:
+    '''Fill a dict with all hackathon information values for all participants'''
+    concatenate_list_of_dict(dict_of_lists, 'id', [
+                             hackathon.title for i in range(participants)])
+    concatenate_list_of_dict(dict_of_lists, 'start', [
+                             hackathon.start.strftime('%d.%m.%y') for i in range(participants)])
+    concatenate_list_of_dict(dict_of_lists, 'end', [
+                             hackathon.end.strftime('%d.%m.%y') for i in range(participants)])
+    concatenate_list_of_dict(dict_of_lists, 'incentives', [
+                             hackathon.incentives for i in range(participants)])
+    concatenate_list_of_dict(dict_of_lists, 'venue', [
+                             hackathon.venue for i in range(participants)])
+    concatenate_list_of_dict(dict_of_lists, 'size', [
+                             hackathon.size for i in range(participants)])
+    concatenate_list_of_dict(dict_of_lists, 'types', [
+                             ', '.join(hackathon.types) for i in range(participants)])
+
+
 @router.post('/csv')
 def upload_hackathon_csv(
     title: Annotated[str, Form()],
@@ -161,6 +200,8 @@ def upload_hackathon_csv(
     venue: Annotated[Venue, Form()],
     size: Annotated[Size, Form()],
     types: Annotated[str, Form()],
+    start: Annotated[datetime, Form()],
+    end: Annotated[datetime, Form()],
     file: UploadFile,
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
@@ -177,6 +218,8 @@ def upload_hackathon_csv(
             size=size,
             types=type_list,
             link=link,
+            start=start,
+            end=end,
             results=copy.deepcopy(QUESTIONS),
             created_by=user_id
         )
@@ -202,6 +245,8 @@ def upload_hackathon_google(
         venue=raw_hackathon.venue,
         size=raw_hackathon.size,
         types=raw_hackathon.types,
+        start=raw_hackathon.start,
+        end=raw_hackathon.end,
         link=raw_hackathon.link,
         results=copy.deepcopy(QUESTIONS),
         created_by=user_id
@@ -227,9 +272,65 @@ def get_hackathons_by_user_id(
             venue=hackathon['venue'],
             size=hackathon['size'],
             types=hackathon['types'],
+            start=hackathon['start'],
+            end=hackathon['end'],
             link=hackathon['link']
         ))
     return found_hackathons
+
+
+@router.get('/aggregated/csv')
+def get_aggregated_hackathon_from_user_id(
+    hackathons: Annotated[Collection, Depends(hackathons_collection)],
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
+) -> str:
+    '''Return a csv string, that contains all data of the uploaded hackathons of the logged in user'''
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
+    result: dict[str, list] = {}
+    for raw_hackathon in hackathons.find({'created_by': user_id}):
+        hackathon = Hackathon.model_validate(raw_hackathon)
+
+        # Get number of participants, by getting the first question with a filled list of values
+        participants = None
+        for question in hackathon.results:
+            if question.values != None and len(question.values) > 0:
+                participants = len(question.values)
+                break
+        fill_dict_with_hackathon_information(result, hackathon, participants)
+
+        if participants != None:
+            for question in hackathon.results:
+                # Handle questions with subquestions
+                if question.question_type == 'group_question' or question.question_type == 'score_question':
+                    for sub_question in question.sub_questions:
+                        title = f'{question.title} [{sub_question.title}]'
+                        if len(sub_question.values) == 0:
+                            concatenate_list_of_dict(
+                                result, title, [None for i in range(participants)])
+                        else:
+                            numerical_values = get_numerical_values(
+                                question, sub_question.values)
+                            concatenate_list_of_dict(
+                                result, title, numerical_values)
+                # Handle questions without subquestions
+                else:
+                    if len(question.values) == 0:
+                        concatenate_list_of_dict(
+                            result, question.title, [None for i in range(participants)])
+                    else:
+                        numerical_values = numerical_values = get_numerical_values(
+                            question, question.values)
+                        concatenate_list_of_dict(
+                            result, question.title, numerical_values)
+
+        # Raise an exception, if no answers were found in the hackathon
+        # Note: The above check for participants ignores questions with subquestions, so this might not be accurate in the future
+        # (but right now every hackathon should have values for at least one question without subquestions, so it should be accurate)
+        else:
+            raise Exception(
+                f'Hackathon {hackathon.title} seems to have no answers!')
+    values_df = pd.DataFrame(result)
+    return values_df.to_csv(index=False)
 
 
 @router.delete('/{hackathon_id}')
@@ -241,3 +342,33 @@ def delete_hackathon(
     '''Delete a hackathon with the given id'''
     hackathons.delete_one({'_id': ObjectId(hackathon_id)})
     return 'Success'
+
+
+@router.get('/amount')
+def get_amount_of_found_hackathons(
+    raw_filter: str,
+    hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
+    token: Annotated[str, Depends(OAUTH2_SCHEME)]
+) -> int:
+    '''Get the amount of hackathons, that can be found in the database with a given filter combination'''
+    filter_combination = Filter.model_validate_json(raw_filter)
+    db_filter = {}
+    if filter_combination.incentives != None and len(filter_combination.incentives) > 0:
+        db_filter['incentives'] = {
+            '$in': filter_combination.incentives
+        }
+    if filter_combination.venue != None and len(filter_combination.venue) > 0:
+        db_filter['venue'] = {
+            '$in': filter_combination.venue
+        }
+    if filter_combination.size != None and len(filter_combination.size) > 0:
+        db_filter['size'] = {
+            '$in': filter_combination.size
+        }
+    if filter_combination.types != None and len(filter_combination.types) > 0:
+        db_filter['types'] = {
+            '$elemMatch': {
+                '$in': filter_combination.types
+            }
+        }
+    return hackathons_collection.count_documents(db_filter)

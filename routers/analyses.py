@@ -16,6 +16,7 @@ from models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, Analys
 import pandas as pd
 import pingouin as pg
 import math
+from datetime import datetime
 
 router = APIRouter()
 
@@ -152,6 +153,8 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
         venue=hackathon.venue,
         size=hackathon.size,
         types=hackathon.types,
+        start=hackathon.start,
+        end=hackathon.end,
         link=hackathon.link
     )
     for question in hackathon.results:
@@ -174,13 +177,18 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
             measure.sub_questions = []
             is_sub_question_empty = False
             for sub_question in question.sub_questions:
+                measure_sub_question = AnalysisSubQuestion(
+                    title=sub_question.title)
+                measure_sub_question.statistical_values = create_statistics(
+                    sub_question.values, question.question_type)
+                measure.sub_questions.append(measure_sub_question)
+
                 sub_values = sub_question.values
                 if sub_question.reverse:
                     max_value = len(question.answers.values())
                     sub_values = list(map(lambda value: abs(
                         value - (max_value + 1)), sub_values))
                 values.append(sub_values)
-                measure.sub_questions.append(sub_question.title)
                 if len(sub_question.values) == 0:
                     is_sub_question_empty = True
             measure.statistical_values = create_statistics_score_question(
@@ -219,6 +227,8 @@ def get_analyses(
                 incentives='cooperative',
                 venue='hybrid',
                 size='small',
-                types=['analysis']
+                types=['analysis'],
+                start=datetime.now(),
+                end=datetime.now()
             ))
     return analyses

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Literal
+from datetime import datetime
 
 Incentives = Literal['competitive', 'cooperative']
 
@@ -17,6 +18,8 @@ class HackathonInformation(BaseModel):
     venue: Venue
     size: Size
     types: list[Type]
+    start: datetime
+    end: datetime
     link: str | None = None
 
 
