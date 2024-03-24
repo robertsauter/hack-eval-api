@@ -264,7 +264,7 @@ def get_hackathons_by_user_id(
     '''Find all hackathons of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     found_hackathons = []
-    for hackathon in hackathons.find({'created_by': user_id}):
+    for hackathon in hackathons.find({'created_by': user_id}, sort=[('_id', -1)]):
         found_hackathons.append(HackathonInformationWithId(
             id=str(hackathon['_id']),
             title=hackathon['title'],
