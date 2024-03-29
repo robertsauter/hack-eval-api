@@ -8,6 +8,7 @@ class Filter(BaseModel):
     venue: list[Venue] | None = None
     size: list[Size] | None = None
     types: list[Type] | None = None
+    onlyOwn: bool = False
 
 
 class FilterWithId(Filter):

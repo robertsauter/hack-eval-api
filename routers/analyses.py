@@ -7,7 +7,7 @@ from pymongo.collection import Collection
 from lib.database import hackathons_collection
 from bson.objectid import ObjectId
 from typing import Annotated
-from lib.globals import OAUTH2_SCHEME
+from lib.globals import OAUTH2_SCHEME, ALGORITHM, SECRET_KEY
 from models.Filter import Filter
 from lib.http_exceptions import HTTP_422
 from models.Hackathon import Hackathon, SurveyMeasure
@@ -17,11 +17,12 @@ import pandas as pd
 import pingouin as pg
 import math
 from datetime import datetime
+from jose import jwt
 
 router = APIRouter()
 
 
-def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection) -> Hackathon | None:
+def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection, user_id: str) -> Hackathon | None:
     '''Create a single dataset, that combines the hackathons, that were found from the filter combination'''
     filter_values = {}
     try:
@@ -33,6 +34,8 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
             if key == 'types':
                 filter_values[key] = {'$elemMatch': {
                     "$in": filter_combination[key]}}
+            elif key == 'onlyOwn':
+                filter_values['created_by'] = user_id
             else:
                 filter_values[key] = {'$in': filter_combination[key]}
     cursor = hackathons_collection.find(filter_values)
@@ -208,6 +211,7 @@ def get_analyses(
     filters: str = '[]'
 ) -> list[Analysis]:
     '''Create all analyses given a list of filters'''
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     hackathon_ids_list = hackathons.split(',')
     hackathon = build_single_hackathon(
         hackathon_ids_list, hackathons_collection)
@@ -217,7 +221,7 @@ def get_analyses(
         decoded_filters.append({})
     for filter_combination in decoded_filters:
         filtered_hackathon = build_filtered_hackathon(
-            filter_combination, hackathons_collection)
+            filter_combination, hackathons_collection, user_id)
         if filtered_hackathon != None:
             analyses.append(create_analysis(filtered_hackathon))
         else:

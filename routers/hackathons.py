@@ -6,7 +6,7 @@ from models.RawHackathon import RawHackathon, RawAnswer
 from models.HackathonInformation import HackathonInformationWithId
 from models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
 from data.survey_questions import QUESTIONS, MISSING_VALUE_TITLE
-from lib.http_exceptions import HTTP_415
+from lib.http_exceptions import HTTP_415, HTTP_409
 import pandas as pd
 from pandas import DataFrame
 from models.HackathonInformation import Venue, Incentives, Size
@@ -193,6 +193,16 @@ def fill_dict_with_hackathon_information(dict_of_lists: dict[str, list], hackath
                              ', '.join(hackathon.types) for i in range(participants)])
 
 
+def check_hackathon_uniqueness(hackathon: Hackathon, hackathons_collection: Collection):
+    found = hackathons_collection.find_one({
+        'title': hackathon.title,
+        'start': hackathon.start,
+        'end': hackathon.end
+    })
+    if found != None:
+        HTTP_409('Hackathon already exists')
+
+
 @router.post('/csv')
 def upload_hackathon_csv(
     title: Annotated[str, Form()],
@@ -223,6 +233,7 @@ def upload_hackathon_csv(
             results=copy.deepcopy(QUESTIONS),
             created_by=user_id
         )
+        check_hackathon_uniqueness(hackathon, hackathons)
         raw_results = pd.read_csv(file.file)
         map_hackathon_results_csv(hackathon, raw_results)
         hackathons.insert_one(hackathon.model_dump())
@@ -251,6 +262,7 @@ def upload_hackathon_google(
         results=copy.deepcopy(QUESTIONS),
         created_by=user_id
     )
+    check_hackathon_uniqueness(hackathon, hackathons)
     map_hackathon_results_google(hackathon, raw_hackathon)
     hackathons.insert_one(hackathon.model_dump())
     return hackathon
@@ -264,7 +276,7 @@ def get_hackathons_by_user_id(
     '''Find all hackathons of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     found_hackathons = []
-    for hackathon in hackathons.find({'created_by': user_id}):
+    for hackathon in hackathons.find({'created_by': user_id}, sort=[('_id', -1)]):
         found_hackathons.append(HackathonInformationWithId(
             id=str(hackathon['_id']),
             title=hackathon['title'],
@@ -352,6 +364,7 @@ def get_amount_of_found_hackathons(
 ) -> int:
     '''Get the amount of hackathons, that can be found in the database with a given filter combination'''
     filter_combination = Filter.model_validate_json(raw_filter)
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     db_filter = {}
     if filter_combination.incentives != None and len(filter_combination.incentives) > 0:
         db_filter['incentives'] = {
@@ -371,4 +384,7 @@ def get_amount_of_found_hackathons(
                 '$in': filter_combination.types
             }
         }
+    if filter_combination.onlyOwn:
+        db_filter['created_by'] = user_id
+
     return hackathons_collection.count_documents(db_filter)
