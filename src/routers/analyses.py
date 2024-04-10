@@ -4,15 +4,15 @@ from fastapi import APIRouter, Depends
 import json
 from typing import Annotated
 from pymongo.collection import Collection
-from lib.database import hackathons_collection
+from src.lib.database import hackathons_collection
 from bson.objectid import ObjectId
 from typing import Annotated
-from lib.globals import OAUTH2_SCHEME, ALGORITHM, SECRET_KEY
-from models.Filter import Filter
-from lib.http_exceptions import HTTP_422
-from models.Hackathon import Hackathon, SurveyMeasure
+from src.lib.globals import OAUTH2_SCHEME, ALGORITHM, SECRET_KEY
+from src.models.Filter import Filter
+from src.lib.http_exceptions import HTTP_422
+from src.models.Hackathon import Hackathon, SurveyMeasure
 import statistics
-from models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, AnalysisSubQuestion
+from src.models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, AnalysisSubQuestion
 import pandas as pd
 import pingouin as pg
 import math

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from models.HackathonInformation import HackathonInformation
-from models.Survey import Survey
+from src.models.HackathonInformation import HackathonInformation
+from src.models.Survey import Survey
 
 
 class Answer(BaseModel):

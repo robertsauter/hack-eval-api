@@ -2,9 +2,9 @@
 
 from pymongo import MongoClient
 import pandas as pd
-import routers.hackathons as hack
-from models.Hackathon import Hackathon
-from data.survey_questions import QUESTIONS
+import src.routers.hackathons as hack
+from src.models.Hackathon import Hackathon
+from src.data.survey_questions import QUESTIONS
 import copy
 from datetime import datetime
 

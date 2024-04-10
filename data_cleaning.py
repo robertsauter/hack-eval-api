@@ -1,9 +1,9 @@
 '''Helpers for cleaning up survey datasets'''
 
 import pandas as pd
-from data.survey_questions import QUESTIONS
-from routers.hackathons import match_question
-from models.Hackathon import SurveyMeasure
+from src.data.survey_questions import QUESTIONS
+from src.routers.hackathons import match_question
+from src.models.Hackathon import SurveyMeasure
 
 TITLE_TRANSLATIONS_MAP = {
     'An wie vielen Hackathons hast du bereits teilgenommen?': 'How many hackathons have you participated in the past?',

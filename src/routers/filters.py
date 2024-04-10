@@ -2,10 +2,10 @@
 
 from fastapi import APIRouter, Depends
 from typing import Annotated
-from lib.globals import OAUTH2_SCHEME, SECRET_KEY, ALGORITHM
+from src.lib.globals import OAUTH2_SCHEME, SECRET_KEY, ALGORITHM
 from pymongo.collection import Collection
-from lib.database import filters_collection
-from models.Filter import Filter, FilterWithId
+from src.lib.database import filters_collection
+from src.models.Filter import Filter, FilterWithId
 from jose import jwt
 from bson import ObjectId
 

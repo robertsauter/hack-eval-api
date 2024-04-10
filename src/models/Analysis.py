@@ -1,4 +1,4 @@
-from models.HackathonInformation import HackathonInformation
+from src.models.HackathonInformation import HackathonInformation
 from pydantic import BaseModel
 from typing import Literal
 

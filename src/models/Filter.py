@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from models.HackathonInformation import Incentives, Venue, Type, Size
+from src.models.HackathonInformation import Incentives, Venue, Type, Size
 
 
 class Filter(BaseModel):

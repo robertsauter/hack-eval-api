@@ -4,8 +4,8 @@ import re
 from nltk.corpus import stopwords
 import pandas as pd
 from thefuzz import fuzz
-from models.Hackathon import SurveyMeasure, Hackathon
-from data.survey_questions import QUESTIONS
+from src.models.Hackathon import SurveyMeasure, Hackathon
+from src.data.survey_questions import QUESTIONS
 import nltk.corpus
 nltk.download('stopwords')
 

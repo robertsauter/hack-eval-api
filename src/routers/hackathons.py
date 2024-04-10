@@ -1,22 +1,22 @@
 '''Routes for handling hackathon objects'''
 
 from fastapi import APIRouter, UploadFile, Form, Depends
-from models.Filter import Filter
-from models.RawHackathon import RawHackathon, RawAnswer
-from models.HackathonInformation import HackathonInformationWithId
-from models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
-from data.survey_questions import QUESTIONS, MISSING_VALUE_TITLE
-from lib.http_exceptions import HTTP_415, HTTP_409
+from src.models.Filter import Filter
+from src.models.RawHackathon import RawHackathon, RawAnswer
+from src.models.HackathonInformation import HackathonInformationWithId
+from src.models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
+from src.data.survey_questions import QUESTIONS, MISSING_VALUE_TITLE
+from src.lib.http_exceptions import HTTP_415, HTTP_409
 import pandas as pd
 from pandas import DataFrame
-from models.HackathonInformation import Venue, Incentives, Size
+from src.models.HackathonInformation import Venue, Incentives, Size
 from typing import Annotated
-from lib.database import hackathons_collection
+from src.lib.database import hackathons_collection
 from pymongo.collection import Collection
 from jose import jwt
-from lib.globals import SECRET_KEY, ALGORITHM, OAUTH2_SCHEME
+from src.lib.globals import SECRET_KEY, ALGORITHM, OAUTH2_SCHEME
 from bson.objectid import ObjectId
-from models.Survey import SurveyItem
+from src.models.Survey import SurveyItem
 import copy
 from thefuzz import fuzz
 import re

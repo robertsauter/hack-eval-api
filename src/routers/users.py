@@ -1,17 +1,17 @@
 '''Routes for handling user authentication'''
 
 from fastapi import APIRouter, Depends
-from models.User import UserInDB
-from models.Token import Token
+from src.models.User import UserInDB
+from src.models.Token import Token
 from typing import Annotated
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm
 from pymongo.collection import Collection
-from lib.database import users_collection
-from lib.http_exceptions import HTTP_401, HTTP_409
+from src.lib.database import users_collection
+from src.lib.http_exceptions import HTTP_401, HTTP_409
 from datetime import timedelta, datetime
 from jose import jwt
-from lib.globals import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from src.lib.globals import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 password_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 

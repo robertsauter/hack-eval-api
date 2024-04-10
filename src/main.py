@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
-from routers import users, hackathons, analyses, filters
+from src.routers import users, hackathons, analyses, filters
 from fastapi.middleware.cors import CORSMiddleware
 from jose import ExpiredSignatureError, jwt
-from lib.globals import SECRET_KEY, ALGORITHM
+from src.lib.globals import SECRET_KEY, ALGORITHM
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
