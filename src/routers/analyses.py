@@ -10,14 +10,15 @@ from typing import Annotated
 from src.lib.globals import OAUTH2_SCHEME, ALGORITHM, SECRET_KEY
 from src.models.Filter import Filter
 from src.lib.http_exceptions import HTTP_422
-from src.models.Hackathon import Hackathon, SurveyMeasure
-import statistics
+from src.models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
 from src.models.Analysis import Analysis, StatisticalValues, AnalysisMeasure, AnalysisSubQuestion
 import pandas as pd
 import pingouin as pg
 import math
 from datetime import datetime
 from jose import jwt
+import time
+import numpy as np
 
 router = APIRouter()
 
@@ -46,102 +47,83 @@ def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Co
             final_hackathon = hackathon
         else:
             combine_hackathon_values(
-                final_hackathon.results, hackathon.results, False)
+                final_hackathon.results, hackathon.results)
     if final_hackathon != None:
         name = filter_combination['name'] if 'name' in filter_combination else 'All hackathons'
         final_hackathon.title = name
     return final_hackathon
 
 
-def extend_values(first: list[int | str], second: list[int | str], strict: bool) -> None:
-    '''Extend an array with a second one. If strict flag is set, remove all values if one of the arrays is empty'''
-    if strict:
-        if len(first) != 0 and len(second) != 0:
-            first.extend(second)
-        else:
-            first.clear()
-    else:
-        first.extend(second)
+def check_if_subquestions_are_even(sub_questions: list[SubQuestion]) -> bool:
+    '''Check if all subquestions have the same amount of values'''
+    lengths = [len(sub_question.values) for sub_question in sub_questions]
+    return len(set(lengths)) == 1
 
 
-def combine_hackathon_values(first_hackathon: list[SurveyMeasure], second_hackathon: list[SurveyMeasure], strict: bool) -> None:
-    '''Add values of the second to the first hackathon. Remove all measures, that are not contained in both'''
+def combine_hackathon_values(first_hackathon: list[SurveyMeasure], second_hackathon: list[SurveyMeasure]) -> None:
+    '''Add values of the second to the first hackathon'''
     for i in range(len(first_hackathon)):
         if first_hackathon[i].question_type == 'group_question':
             for j in range(len(first_hackathon[i].sub_questions)):
-                extend_values(first_hackathon[i].sub_questions[j].values,
-                              second_hackathon[i].sub_questions[j].values, strict)
+                first_hackathon[i].sub_questions[j].values.extend(
+                    second_hackathon[i].sub_questions[j].values)
         elif first_hackathon[i].question_type == 'score_question':
-            # Don't return score questions where subquestions don't have the same amount of values
-            length = len(second_hackathon[i].sub_questions[0].values)
-            is_uneven = False
-            for j in range(len(second_hackathon[i].sub_questions)):
-                if len(second_hackathon[i].sub_questions[j].values) != length:
-                    is_uneven = True
-            if not is_uneven:
+            # Remove values from first hackathon, if subquestions of the first hackathon don't have the same amount of values
+            is_first_hackathon_even = check_if_subquestions_are_even(
+                first_hackathon[i].sub_questions)
+            if not is_first_hackathon_even:
+                for sub_question in first_hackathon[i].sub_questions:
+                    sub_question.values = []
+            # Don't append values, if subquestions of the second hackathon don't have the same amount of values
+            is_second_hackathon_even = check_if_subquestions_are_even(
+                second_hackathon[i].sub_questions)
+            if is_second_hackathon_even:
                 for j in range(len(first_hackathon[i].sub_questions)):
-                    extend_values(first_hackathon[i].sub_questions[j].values,
-                                  second_hackathon[i].sub_questions[j].values, strict)
+                    first_hackathon[i].sub_questions[j].values.extend(
+                        second_hackathon[i].sub_questions[j].values)
+            else:
+                pass
         else:
-            extend_values(first_hackathon[i].values,
-                          second_hackathon[i].values, strict)
+            first_hackathon[i].values.extend(second_hackathon[i].values)
 
 
-def build_single_hackathon(hackathon_ids: list[str], hackathons_collection: Collection) -> Hackathon | None:
-    '''Turn a list of hackathons into a single dataset'''
-    hackathon_object_ids = [ObjectId(id) for id in hackathon_ids]
-    hackathons_cursor = hackathons_collection.find(
-        {'_id': {'$in': hackathon_object_ids}})
-    final_hackathon = None
-    for hackathon_dict in hackathons_cursor:
-        hackathon = Hackathon.model_validate(hackathon_dict)
-        if final_hackathon == None:
-            final_hackathon = hackathon
-        else:
-            combine_hackathon_values(
-                final_hackathon.results, final_hackathon.results, True)
-    return final_hackathon
+def get_hackathon_by_id(hackathon_id: str, hackathons_collection: Collection) -> Hackathon:
+    '''Get a hackathon from the database by id'''
+    hackathon = hackathons_collection.find_one({'_id': ObjectId(hackathon_id)})
+    return Hackathon.model_validate(hackathon)
 
 
-def create_statistics(values: list[int | str], question_type: str) -> StatisticalValues:
+def create_statistics(values: np.ndarray, question_type: str) -> StatisticalValues:
     '''Create statistical values for a list of values'''
-    participants = len(values)
-    distribution = {}
-    for value in values:
-        value_as_string = str(value)
-        if value_as_string in distribution:
-            distribution[value_as_string] += 1
-        else:
-            distribution[value_as_string] = 1
+    unique, counts = np.unique(values, return_counts=True)
     if question_type == 'category_question':
-        return StatisticalValues(participants=participants, distribution=distribution)
-    deviation = statistics.stdev(values) if len(values) > 1 else 0
-    average = statistics.fmean(values) if len(values) > 0 else None
+        distribution = dict(zip(unique, counts))
+        return StatisticalValues(participants=values.size, distribution=distribution)
+    else:
+        unique_strings = np.char.mod('%d', unique)
+        distribution = dict(zip(unique_strings, counts))
+    deviation = np.std(values) if values.size > 1 else 0
+    average = np.mean(values) if values.size > 1 else 0
     return StatisticalValues(
-        participants=participants,
+        participants=values.size,
         distribution=distribution,
         deviation=deviation,
         average=average
     )
 
 
-def create_statistics_score_question(question: SurveyMeasure, values: list[list[int]], sub_question_missing: bool) -> StatisticalValues:
+def create_statistics_score_question(values: np.ndarray, question_type: str, sub_question_missing: bool) -> StatisticalValues:
     '''Create statistical values for a score question'''
     if sub_question_missing:
-        return create_statistics([], question.question_type)
+        return create_statistics(np.array([]), question_type)
     else:
         sub_question_dataframe = pd.DataFrame(values)
         cronbach_alpha = None
-        if len(values) > 0 and len(values[0]) > 0:
+        if values.shape[0] > 0 and values.shape[1] > 0:
             cronbach_alpha = pg.cronbach_alpha(sub_question_dataframe)
-        final_values = []
-        for i in range(len(values[0])):
-            participant_values = []
-            for j in range(len(values)):
-                participant_values.append(values[j][i])
-            final_values.append(round(statistics.fmean(participant_values)))
+        final_values = np.mean(values, axis=0)
         statistical_values = create_statistics(
-            final_values, question.question_type)
+            final_values, question_type)
         if cronbach_alpha != None:
             statistical_values.cronbach_alpha = 0 if math.isnan(
                 cronbach_alpha[0]) else cronbach_alpha[0]
@@ -173,7 +155,7 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
                 measure_sub_question = AnalysisSubQuestion(
                     title=sub_question.title)
                 measure_sub_question.statistical_values = create_statistics(
-                    sub_question.values, question.question_type)
+                    np.array(sub_question.values), question.question_type)
                 measure.sub_questions.append(measure_sub_question)
         elif question.question_type == 'score_question':
             values = []
@@ -183,7 +165,7 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
                 measure_sub_question = AnalysisSubQuestion(
                     title=sub_question.title)
                 measure_sub_question.statistical_values = create_statistics(
-                    sub_question.values, question.question_type)
+                    np.array(sub_question.values), question.question_type)
                 measure.sub_questions.append(measure_sub_question)
 
                 sub_values = sub_question.values
@@ -195,10 +177,10 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
                 if len(sub_question.values) == 0:
                     is_sub_question_empty = True
             measure.statistical_values = create_statistics_score_question(
-                question, values, is_sub_question_empty)
+                np.array(values), question.question_type, is_sub_question_empty)
         else:
             measure.statistical_values = create_statistics(
-                question.values, question.question_type)
+                np.array(question.values), question.question_type)
         analysis.results.append(measure)
     return analysis
 
@@ -207,14 +189,13 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
 def get_analyses(
     hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)],
-    hackathons: str = '',
+    hackathon_id: str = '',
     filters: str = '[]'
 ) -> list[Analysis]:
     '''Create all analyses given a list of filters'''
+    t_start = time.time()
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
-    hackathon_ids_list = hackathons.split(',')
-    hackathon = build_single_hackathon(
-        hackathon_ids_list, hackathons_collection)
+    hackathon = get_hackathon_by_id(hackathon_id, hackathons_collection)
     analyses = [create_analysis(hackathon)]
     decoded_filters = json.loads(filters)
     if len(decoded_filters) == 0:
@@ -235,4 +216,6 @@ def get_analyses(
                 start=datetime.now(),
                 end=datetime.now()
             ))
+    t_end = time.time()
+    print(t_end - t_start)
     return analyses
