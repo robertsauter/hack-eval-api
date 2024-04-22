@@ -198,7 +198,6 @@ def get_analyses(
     filters: str = '[]'
 ) -> list[Analysis]:
     '''Create all analyses given a list of filters'''
-    t_start = time.time()
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     hackathon = get_and_prepare_hackathon(hackathon_id, hackathons_collection)
     analyses = [create_analysis(hackathon)]
@@ -221,6 +220,4 @@ def get_analyses(
                 start=datetime.now(),
                 end=datetime.now()
             ))
-    t_end = time.time()
-    print(t_end - t_start)
     return analyses
