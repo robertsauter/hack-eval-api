@@ -87,10 +87,18 @@ def combine_hackathon_values(first_hackathon: list[SurveyMeasure], second_hackat
             first_hackathon[i].values.extend(second_hackathon[i].values)
 
 
-def get_hackathon_by_id(hackathon_id: str, hackathons_collection: Collection) -> Hackathon:
-    '''Get a hackathon from the database by id'''
-    hackathon = hackathons_collection.find_one({'_id': ObjectId(hackathon_id)})
-    return Hackathon.model_validate(hackathon)
+def get_and_prepare_hackathon(hackathon_id: str, hackathons_collection: Collection) -> Hackathon:
+    '''Get a hackathon from the database and remove score questions where the subquestions don't have the same amount of values'''
+    hackathon_dict = hackathons_collection.find_one(
+        {'_id': ObjectId(hackathon_id)})
+    hackathon = Hackathon.model_validate(hackathon_dict)
+    for question in hackathon.results:
+        if question.question_type == 'score_question':
+            even = check_if_subquestions_are_even(question.sub_questions)
+            if not even:
+                for sub_question in question.sub_questions:
+                    sub_question.values = []
+    return hackathon
 
 
 def create_statistics(values: np.ndarray, question_type: str) -> StatisticalValues:
@@ -112,22 +120,19 @@ def create_statistics(values: np.ndarray, question_type: str) -> StatisticalValu
     )
 
 
-def create_statistics_score_question(values: np.ndarray, question_type: str, sub_question_missing: bool) -> StatisticalValues:
+def create_statistics_score_question(values: np.ndarray, question_type: str) -> StatisticalValues:
     '''Create statistical values for a score question'''
-    if sub_question_missing:
-        return create_statistics(np.array([]), question_type)
-    else:
-        sub_question_dataframe = pd.DataFrame(values)
-        cronbach_alpha = None
-        if values.shape[0] > 0 and values.shape[1] > 0:
-            cronbach_alpha = pg.cronbach_alpha(sub_question_dataframe)
-        final_values = np.mean(values, axis=0)
-        statistical_values = create_statistics(
-            final_values, question_type)
-        if cronbach_alpha != None:
-            statistical_values.cronbach_alpha = 0 if math.isnan(
-                cronbach_alpha[0]) else cronbach_alpha[0]
-        return statistical_values
+    sub_question_dataframe = pd.DataFrame(values)
+    cronbach_alpha = None
+    if values.shape[0] > 0 and values.shape[1] > 0:
+        cronbach_alpha = pg.cronbach_alpha(sub_question_dataframe)
+    final_values = np.mean(values, axis=0)
+    statistical_values = create_statistics(
+        final_values, question_type)
+    if cronbach_alpha != None:
+        statistical_values.cronbach_alpha = 0 if math.isnan(
+            cronbach_alpha[0]) else cronbach_alpha[0]
+    return statistical_values
 
 
 def create_analysis(hackathon: Hackathon) -> Analysis:
@@ -160,7 +165,6 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
         elif question.question_type == 'score_question':
             values = []
             measure.sub_questions = []
-            is_sub_question_empty = False
             for sub_question in question.sub_questions:
                 measure_sub_question = AnalysisSubQuestion(
                     title=sub_question.title)
@@ -174,10 +178,11 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
                     sub_values = list(map(lambda value: abs(
                         value - (max_value + 1)), sub_values))
                 values.append(sub_values)
-                if len(sub_question.values) == 0:
-                    is_sub_question_empty = True
-            measure.statistical_values = create_statistics_score_question(
-                np.array(values), question.question_type, is_sub_question_empty)
+            try:
+                measure.statistical_values = create_statistics_score_question(
+                    np.array(values), question.question_type)
+            except:
+                pass
         else:
             measure.statistical_values = create_statistics(
                 np.array(question.values), question.question_type)
@@ -195,7 +200,7 @@ def get_analyses(
     '''Create all analyses given a list of filters'''
     t_start = time.time()
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
-    hackathon = get_hackathon_by_id(hackathon_id, hackathons_collection)
+    hackathon = get_and_prepare_hackathon(hackathon_id, hackathons_collection)
     analyses = [create_analysis(hackathon)]
     decoded_filters = json.loads(filters)
     if len(decoded_filters) == 0:
