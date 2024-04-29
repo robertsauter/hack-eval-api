@@ -149,6 +149,7 @@ def create_analysis(hackathon: Hackathon) -> Analysis:
     for question in hackathon.results:
         measure = AnalysisMeasure(
             title=question.title,
+            display_name=question.display_name,
             question_type=question.question_type,
             answer_type=question.answer_type,
             answers=question.answers

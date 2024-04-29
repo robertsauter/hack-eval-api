@@ -11,6 +11,7 @@ MISSING_VALUE_TITLE = "No answer given"
 QUESTIONS = [
     {
         "title": "To what extent was your decision to participate in this hackathon motivated by...",
+        "display_name": "Motivation",
         "question_type": "group_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -71,6 +72,7 @@ QUESTIONS = [
     },
     {
         "title": "How many hackathons have you participated in the past?",
+        "display_name": "Event participation",
         "question_type": "single_question",
         "answer_type": "int",
         "values": [],
@@ -78,6 +80,7 @@ QUESTIONS = [
     },
     {
         "title": "How many people were in your team (including yourself)?",
+        "display_name": "Team size",
         "question_type": "single_question",
         "answer_type": "int",
         "values": [],
@@ -85,6 +88,7 @@ QUESTIONS = [
     },
     {
         "title": "Was there a team leader?",
+        "display_name": "Team leader",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
@@ -98,6 +102,7 @@ QUESTIONS = [
     },
     {
         "title": "Was there a project manager?",
+        "display_name": "Team manager",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
@@ -111,6 +116,7 @@ QUESTIONS = [
     },
     {
         "title": "Was there a social-emotional leader?",
+        "display_name": "Social leader",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
@@ -124,6 +130,7 @@ QUESTIONS = [
     },
     {
         "title": "How well did you know your team members?",
+        "display_name": "Team familiarity",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -153,6 +160,7 @@ QUESTIONS = [
     },
     {
         "title": "Would you describe your team process as more...",
+        "display_name": "Satisfaction with process",
         "question_type": "score_question",
         "answer_type": "int",
         "sub_questions": [
@@ -181,6 +189,7 @@ QUESTIONS = [
     },
     {
         "title": "Please indicate your level of agreement with the following statements related to your GOALS as a team.",
+        "display_name": "Goal clarity",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -208,6 +217,7 @@ QUESTIONS = [
     },
     {
         "title": "Please indicate your level of agreement with the following statements about your TEAM.",
+        "display_name": "Voice",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -237,6 +247,7 @@ QUESTIONS = [
     },
     {
         "title": "Please indicate your level of agreement with the following statements related to your SATISFACTION with your project.",
+        "display_name": "Satisfaction with outcome",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -266,6 +277,7 @@ QUESTIONS = [
     },
     {
         "title": "Please indicate your level of agreement with the following statements related to the USEFULNESS of your project.",
+        "display_name": "Perceived usefulness",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -295,6 +307,7 @@ QUESTIONS = [
     },
     {
         "title": "Please indicate your FUTURE INTENTIONS related to your hackathon project.",
+        "display_name": "Continuation intentions",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -319,6 +332,7 @@ QUESTIONS = [
     },
     {
         "title": "Please indicate your level of agreement with the following statements related to your ABILITY to continue working on your hackathon project.",
+        "display_name": "Behavioral control",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -343,6 +357,7 @@ QUESTIONS = [
     },
     {
         "title": "To what extent do you agree with the following statements about THE SUPPORT THE MENTORS PROVIDED during this hackathon?",
+        "display_name": "Mentoring experience",
         "question_type": "group_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -397,6 +412,7 @@ QUESTIONS = [
     },
     {
         "title": "How do you feel about your OVERALL EXPERIENCE participating in this hackathon?",
+        "display_name": "Satisfaction with hackathon",
         "question_type": "score_question",
         "answer_type": "int",
         "sub_questions": [
@@ -425,6 +441,7 @@ QUESTIONS = [
     },
     {
         "title": "Do people identify with the community?",
+        "display_name": "Community identification",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -466,6 +483,7 @@ QUESTIONS = [
     },
     {
         "title": "To what extent do you agree with the following statements about your relationship with the community?",
+        "display_name": "Social capital",
         "question_type": "score_question",
         "answer_type": "string_to_int",
         "sub_questions": [
@@ -526,6 +544,7 @@ QUESTIONS = [
     },
     {
         "title": "Do you plan to participate in a similar event in the future?",
+        "display_name": "Future participation intentions",
         "question_type": "single_question",
         "answer_type": "string_to_int",
         "values": [],
@@ -540,6 +559,7 @@ QUESTIONS = [
     },
     {
         "title": "How likely would you recommend a similar hackathon to a friend or colleague?",
+        "display_name": "Recommendation likeliness",
         "question_type": "single_question",
         "answer_type": "int",
         "values": [],
@@ -547,6 +567,7 @@ QUESTIONS = [
     },
     {
         "title": "How many years of programming experience do you have?",
+        "display_name": "Programming experience years",
         "question_type": "single_question",
         "answer_type": "int",
         "values": [],
@@ -554,6 +575,7 @@ QUESTIONS = [
     },
     {
         "title": "Referring back to the people you collaborated with at this hackathon, how do you estimate your programming experience compared to them?",
+        "display_name": "Programming experience comparison",
         "question_type": "single_question",
         "answer_type": "string_to_int",
         "values": [],
@@ -568,6 +590,7 @@ QUESTIONS = [
     },
     {
         "title": "How old are you currently?",
+        "display_name": "Age",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
@@ -586,6 +609,7 @@ QUESTIONS = [
     },
     {
         "title": "Are you...?",
+        "display_name": "Gender",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
@@ -600,6 +624,7 @@ QUESTIONS = [
     },
     {
         "title": "What is highest level of formal education that you have completed until now?",
+        "display_name": "Education",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
@@ -618,6 +643,7 @@ QUESTIONS = [
     },
     {
         "title": "Do you consider yourself a minority? (For example in terms of race, gender, expertise or in another way)",
+        "display_name": "Minority",
         "question_type": "category_question",
         "answer_type": "string",
         "values": [],
