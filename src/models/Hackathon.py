@@ -12,6 +12,7 @@ class SubQuestion(BaseModel):
 
 class SurveyMeasure(BaseModel):
     title: str
+    display_name: str
     question_type: Literal['single_question',
                            'group_question', 'score_question', 'category_question']
     answer_type: Literal['string_to_int', 'int', 'string']
