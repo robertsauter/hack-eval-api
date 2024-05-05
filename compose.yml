@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongo
+    environment:
+      - "DB_CONNECTION=${DB_CONNECTION}"
+      - "SECRET_KEY=${SECRET_KEY}"
+  mongo:
+    image: mongo
