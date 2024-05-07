@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter
 from src.routers import users, hackathons, analyses, filters
 from fastapi.middleware.cors import CORSMiddleware
 from jose import ExpiredSignatureError, jwt
@@ -15,6 +15,15 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+app_router = APIRouter()
+
+app_router.include_router(users.router, prefix='/users')
+app_router.include_router(hackathons.router, prefix='/hackathons')
+app_router.include_router(analyses.router, prefix='/analyses')
+app_router.include_router(filters.router, prefix='/filters')
+
+app.include_router(app_router, prefix='/hackpulseanalyzer')
+
 
 @app.middleware('http')
 async def check_if_token_expired(request: Request, call_next):
@@ -28,8 +37,3 @@ async def check_if_token_expired(request: Request, call_next):
             return JSONResponse('Token expired', 403)
     response = await call_next(request)
     return response
-
-app.include_router(users.router, prefix='/users')
-app.include_router(hackathons.router, prefix='/hackathons')
-app.include_router(analyses.router, prefix='/analyses')
-app.include_router(filters.router, prefix='/filters')
