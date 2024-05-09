@@ -5,7 +5,7 @@ from jose import ExpiredSignatureError, jwt
 from src.lib.globals import SECRET_KEY, ALGORITHM
 from fastapi.responses import JSONResponse
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(
     CORSMiddleware,
