@@ -358,6 +358,7 @@ def delete_hackathon(
 
 @router.get('/amount')
 def get_amount_of_found_hackathons(
+    selected_hackathon_id,
     raw_filter: str,
     hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
@@ -365,7 +366,9 @@ def get_amount_of_found_hackathons(
     '''Get the amount of hackathons, that can be found in the database with a given filter combination'''
     filter_combination = Filter.model_validate_json(raw_filter)
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
-    db_filter = {}
+    db_filter = {
+        '_id': {'$ne': ObjectId(selected_hackathon_id)}
+    }
     if filter_combination.incentives != None and len(filter_combination.incentives) > 0:
         db_filter['incentives'] = {
             '$in': filter_combination.incentives

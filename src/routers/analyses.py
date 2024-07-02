@@ -22,9 +22,11 @@ import numpy as np
 router = APIRouter()
 
 
-def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection, user_id: str) -> Hackathon | None:
+def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection, user_id: str, selected_hackathon_id: str) -> Hackathon | None:
     '''Create a single dataset, that combines the hackathons, that were found from the filter combination'''
-    filter_values = {}
+    filter_values = {
+        '_id': {'$ne': ObjectId(selected_hackathon_id)}
+    }
     try:
         Filter.model_validate(filter_combination)
     except:
@@ -206,7 +208,7 @@ def get_analyses(
         decoded_filters.append({})
     for filter_combination in decoded_filters:
         filtered_hackathon = build_filtered_hackathon(
-            filter_combination, hackathons_collection, user_id)
+            filter_combination, hackathons_collection, user_id, hackathon_id)
         if filtered_hackathon != None:
             analyses.append(create_analysis(filtered_hackathon))
         else:
