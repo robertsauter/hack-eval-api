@@ -218,7 +218,7 @@ def upload_hackathon_csv(
     link: Annotated[str | None, Form()] = None,
 ) -> Hackathon | None:
     '''Save a hackathon in the database from a CSV file'''
-    if (file.content_type == 'text/csv' or file.content_type == 'application/vnd.ms-excel') and file.filename.endswith('.csv'):
+    if file.content_type == 'text/csv' and file.filename.endswith('.csv'):
         user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
         type_list = types.split(',')
         hackathon = Hackathon(
