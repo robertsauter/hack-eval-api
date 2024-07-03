@@ -21,6 +21,7 @@ import copy
 from thefuzz import fuzz
 import re
 from datetime import datetime
+import math
 
 SIMILARITY = 85
 
@@ -82,9 +83,9 @@ def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
         case 'int':
             try:
                 value = int(value)
-                return 0 if question.question_type == 'single_question' and value > 200 else value
+                return -1 if question.question_type == 'single_question' and value > 200 else value
             except:
-                return 0
+                return -1
         case 'string':
             if question.question_type == 'category_question':
                 if value in question.answers:
@@ -94,15 +95,17 @@ def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
         case 'string_to_int':
             if value in question.answers:
                 return question.answers[value]
-            return 0
+            return -1
 
 
 def set_value_google(question: SurveyMeasure, answers: dict[str, RawAnswer], item_id: str) -> None:
     '''Set the value for simple questions from Google Forms data'''
     if item_id in answers:
         value = answers[item_id].textAnswers.answers[0].value
-        real_value = get_real_value(question, value)
-        question.values.append(real_value)
+    else:
+        value = math.nan
+    real_value = get_real_value(question, value)
+    question.values.append(real_value)
 
 
 def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict) -> None:
@@ -112,8 +115,10 @@ def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, 
             item_id = sub_items[sub_question.title]
             if item_id in answers:
                 value = answers[item_id].textAnswers.answers[0].value
-                real_value = get_real_value(question, value)
-                sub_question.values.append(real_value)
+            else:
+                value = math.nan
+            real_value = get_real_value(question, value)
+            sub_question.values.append(real_value)
 
 
 def find_question_google(question: SurveyMeasure, items: list[SurveyItem]) -> dict | str | None:
