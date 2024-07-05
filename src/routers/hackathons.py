@@ -6,12 +6,12 @@ from src.models.RawHackathon import RawHackathon, RawAnswer
 from src.models.HackathonInformation import HackathonInformationWithId
 from src.models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
 from src.data.survey_questions import QUESTIONS, MISSING_VALUE_TITLE
-from src.lib.http_exceptions import HTTP_415, HTTP_409
+from src.lib.http_exceptions import HTTP_415, HTTP_409, HTTP_401
 import pandas as pd
 from pandas import DataFrame
 from src.models.HackathonInformation import Venue, Incentives, Size
 from typing import Annotated
-from src.lib.database import hackathons_collection
+from src.lib.database import hackathons_collection, users_collection
 from pymongo.collection import Collection
 from jose import jwt
 from src.lib.globals import SECRET_KEY, ALGORITHM, OAUTH2_SCHEME
@@ -22,6 +22,7 @@ from thefuzz import fuzz
 import re
 from datetime import datetime
 import math
+from src.models.User import User
 
 SIMILARITY = 85
 
@@ -208,6 +209,16 @@ def check_hackathon_uniqueness(hackathon: Hackathon, hackathons_collection: Coll
         HTTP_409('Hackathon already exists')
 
 
+def check_admin(user_id: str, users: Collection):
+    '''Check if the user with the given id has the admin role'''
+    user_dict = users.find_one({'_id': ObjectId(user_id)})
+    if user_dict == None:
+        HTTP_401('User could not be found')
+    user = User.model_validate(user_dict)
+    if user.role != 'admin':
+        HTTP_401('User does not have access')
+
+
 @router.post('/csv')
 def upload_hackathon_csv(
     title: Annotated[str, Form()],
@@ -299,10 +310,12 @@ def get_hackathons_by_user_id(
 @router.get('/aggregated/csv')
 def get_aggregated_hackathon_from_user_id(
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(OAUTH2_SCHEME)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)],
+    users: Annotated[Collection, Depends(users_collection)]
 ) -> str:
     '''Return a csv string, that contains all data of the uploaded hackathons of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
+    check_admin(user_id, users)
     result: dict[str, list] = {}
     for raw_hackathon in hackathons.find({'created_by': user_id}):
         hackathon = Hackathon.model_validate(raw_hackathon)

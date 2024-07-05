@@ -1,7 +1,7 @@
 '''Routes for handling user authentication'''
 
 from fastapi import APIRouter, Depends, Form
-from src.models.User import UserInDB
+from src.models.User import UserInDB, User
 from src.models.Token import Token
 from typing import Annotated
 from passlib.context import CryptContext
@@ -121,3 +121,14 @@ def update_username(
         }
     )
     return 'Success'
+
+
+@router.get('/current')
+def get_logged_in_user(
+    token: Annotated[str, Depends(OAUTH2_SCHEME)],
+    users: Annotated[Collection, Depends(users_collection)]
+) -> User:
+    '''Get the currently logged in user'''
+    user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
+    user = users.find_one({'_id': ObjectId(user_id)})
+    return User.model_validate(user)
