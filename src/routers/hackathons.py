@@ -317,7 +317,7 @@ def get_aggregated_hackathon_from_user_id(
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
     check_admin(user_id, users)
     result: dict[str, list] = {}
-    for raw_hackathon in hackathons.find({'created_by': user_id}):
+    for raw_hackathon in hackathons.find():
         hackathon = Hackathon.model_validate(raw_hackathon)
 
         # Get number of participants, by getting the first question with a filled list of values
