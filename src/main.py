@@ -9,7 +9,7 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['http://localhost:5173'],
+    allow_origins=['https://demo.colaps.team'],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
@@ -22,7 +22,7 @@ app_router.include_router(hackathons.router, prefix='/hackathons')
 app_router.include_router(analyses.router, prefix='/analyses')
 app_router.include_router(filters.router, prefix='/filters')
 
-app.include_router(app_router, prefix='/hackpulseanalyzer')
+app.include_router(app_router, prefix='/hackpulseapi')
 
 
 @app.middleware('http')
