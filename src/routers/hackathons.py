@@ -6,12 +6,12 @@ from src.models.RawHackathon import RawHackathon, RawAnswer
 from src.models.HackathonInformation import HackathonInformationWithId
 from src.models.Hackathon import Hackathon, SurveyMeasure, SubQuestion
 from src.data.survey_questions import QUESTIONS, MISSING_VALUE_TITLE
-from src.lib.http_exceptions import HTTP_415, HTTP_409
+from src.lib.http_exceptions import HTTP_415, HTTP_409, HTTP_401
 import pandas as pd
 from pandas import DataFrame
 from src.models.HackathonInformation import Venue, Incentives, Size
 from typing import Annotated
-from src.lib.database import hackathons_collection
+from src.lib.database import hackathons_collection, users_collection
 from pymongo.collection import Collection
 from jose import jwt
 from src.lib.globals import SECRET_KEY, ALGORITHM, OAUTH2_SCHEME
@@ -21,6 +21,8 @@ import copy
 from thefuzz import fuzz
 import re
 from datetime import datetime
+import math
+from src.models.User import User
 
 SIMILARITY = 85
 
@@ -82,9 +84,9 @@ def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
         case 'int':
             try:
                 value = int(value)
-                return 0 if question.question_type == 'single_question' and value > 200 else value
+                return -1 if question.question_type == 'single_question' and value > 200 else value
             except:
-                return 0
+                return -1
         case 'string':
             if question.question_type == 'category_question':
                 if value in question.answers:
@@ -94,15 +96,17 @@ def get_real_value(question: SurveyMeasure, value: str | int) -> int | str:
         case 'string_to_int':
             if value in question.answers:
                 return question.answers[value]
-            return 0
+            return -1
 
 
 def set_value_google(question: SurveyMeasure, answers: dict[str, RawAnswer], item_id: str) -> None:
     '''Set the value for simple questions from Google Forms data'''
     if item_id in answers:
         value = answers[item_id].textAnswers.answers[0].value
-        real_value = get_real_value(question, value)
-        question.values.append(real_value)
+    else:
+        value = math.nan
+    real_value = get_real_value(question, value)
+    question.values.append(real_value)
 
 
 def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, RawAnswer], sub_items: dict) -> None:
@@ -112,8 +116,10 @@ def set_value_group_question_google(question: SurveyMeasure, answers: dict[str, 
             item_id = sub_items[sub_question.title]
             if item_id in answers:
                 value = answers[item_id].textAnswers.answers[0].value
-                real_value = get_real_value(question, value)
-                sub_question.values.append(real_value)
+            else:
+                value = math.nan
+            real_value = get_real_value(question, value)
+            sub_question.values.append(real_value)
 
 
 def find_question_google(question: SurveyMeasure, items: list[SurveyItem]) -> dict | str | None:
@@ -201,6 +207,16 @@ def check_hackathon_uniqueness(hackathon: Hackathon, hackathons_collection: Coll
     })
     if found != None:
         HTTP_409('Hackathon already exists')
+
+
+def check_admin(user_id: str, users: Collection):
+    '''Check if the user with the given id has the admin role'''
+    user_dict = users.find_one({'_id': ObjectId(user_id)})
+    if user_dict == None:
+        HTTP_401('User could not be found')
+    user = User.model_validate(user_dict)
+    if user.role != 'admin':
+        HTTP_401('User does not have access')
 
 
 @router.post('/csv')
@@ -294,12 +310,14 @@ def get_hackathons_by_user_id(
 @router.get('/aggregated/csv')
 def get_aggregated_hackathon_from_user_id(
     hackathons: Annotated[Collection, Depends(hackathons_collection)],
-    token: Annotated[str, Depends(OAUTH2_SCHEME)]
+    token: Annotated[str, Depends(OAUTH2_SCHEME)],
+    users: Annotated[Collection, Depends(users_collection)]
 ) -> str:
     '''Return a csv string, that contains all data of the uploaded hackathons of the logged in user'''
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
+    check_admin(user_id, users)
     result: dict[str, list] = {}
-    for raw_hackathon in hackathons.find({'created_by': user_id}):
+    for raw_hackathon in hackathons.find():
         hackathon = Hackathon.model_validate(raw_hackathon)
 
         # Get number of participants, by getting the first question with a filled list of values
@@ -358,6 +376,7 @@ def delete_hackathon(
 
 @router.get('/amount')
 def get_amount_of_found_hackathons(
+    selected_hackathon_id,
     raw_filter: str,
     hackathons_collection: Annotated[Collection, Depends(hackathons_collection)],
     token: Annotated[str, Depends(OAUTH2_SCHEME)]
@@ -365,7 +384,9 @@ def get_amount_of_found_hackathons(
     '''Get the amount of hackathons, that can be found in the database with a given filter combination'''
     filter_combination = Filter.model_validate_json(raw_filter)
     user_id = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])['sub']
-    db_filter = {}
+    db_filter = {
+        '_id': {'$ne': ObjectId(selected_hackathon_id)}
+    }
     if filter_combination.incentives != None and len(filter_combination.incentives) > 0:
         db_filter['incentives'] = {
             '$in': filter_combination.incentives

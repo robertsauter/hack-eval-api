@@ -9,7 +9,7 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['https://hack-eval.vercel.app'],
+    allow_origins=['http://localhost:5173'],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],

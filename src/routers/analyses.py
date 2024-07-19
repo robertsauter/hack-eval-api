@@ -22,9 +22,11 @@ import numpy as np
 router = APIRouter()
 
 
-def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection, user_id: str) -> Hackathon | None:
+def build_filtered_hackathon(filter_combination: dict, hackathons_collection: Collection, user_id: str, selected_hackathon_id: str) -> Hackathon | None:
     '''Create a single dataset, that combines the hackathons, that were found from the filter combination'''
-    filter_values = {}
+    filter_values = {
+        '_id': {'$ne': ObjectId(selected_hackathon_id)}
+    }
     try:
         Filter.model_validate(filter_combination)
     except:
@@ -102,17 +104,20 @@ def get_and_prepare_hackathon(hackathon_id: str, hackathons_collection: Collecti
 
 def create_statistics(values: np.ndarray, question_type: str) -> StatisticalValues:
     '''Create statistical values for a list of values'''
-    unique, counts = np.unique(values, return_counts=True)
     if question_type == 'category_question':
+        unique, counts = np.unique(values, return_counts=True)
         distribution = dict(zip(unique, counts))
         return StatisticalValues(participants=values.size, distribution=distribution)
-    else:
-        unique_strings = np.char.mod('%d', unique)
-        distribution = dict(zip(unique_strings, counts))
-    deviation = np.std(values) if values.size > 1 else 0
-    average = np.mean(values) if values.size > 1 else 0
+
+    # Filter out missing values
+    filtered_values = values[values != -1]
+    unique, counts = np.unique(filtered_values, return_counts=True)
+    unique_strings = np.char.mod('%d', unique)
+    distribution = dict(zip(unique_strings, counts))
+    deviation = np.std(filtered_values) if filtered_values.size > 1 else 0
+    average = np.mean(filtered_values) if filtered_values.size > 1 else 0
     return StatisticalValues(
-        participants=values.size,
+        participants=filtered_values.size,
         distribution=distribution,
         deviation=deviation,
         average=average
@@ -121,11 +126,15 @@ def create_statistics(values: np.ndarray, question_type: str) -> StatisticalValu
 
 def create_statistics_score_question(values: np.ndarray, question_type: str) -> StatisticalValues:
     '''Create statistical values for a score question'''
-    sub_question_dataframe = pd.DataFrame(values)
+    # Filter out missing values
+    i, missing_value_indices = np.where(values == -1)
+    filtered_values = np.delete(values, missing_value_indices, 1)
+
+    sub_question_dataframe = pd.DataFrame(filtered_values)
     cronbach_alpha = None
-    if values.shape[0] > 0 and values.shape[1] > 0:
+    if filtered_values.shape[0] > 0 and filtered_values.shape[1] > 0:
         cronbach_alpha = pg.cronbach_alpha(sub_question_dataframe)
-    final_values = np.mean(values, axis=0)
+    final_values = np.mean(filtered_values, axis=0)
     statistical_values = create_statistics(
         final_values, question_type)
     if cronbach_alpha != None:
@@ -206,7 +215,7 @@ def get_analyses(
         decoded_filters.append({})
     for filter_combination in decoded_filters:
         filtered_hackathon = build_filtered_hackathon(
-            filter_combination, hackathons_collection, user_id)
+            filter_combination, hackathons_collection, user_id, hackathon_id)
         if filtered_hackathon != None:
             analyses.append(create_analysis(filtered_hackathon))
         else:
